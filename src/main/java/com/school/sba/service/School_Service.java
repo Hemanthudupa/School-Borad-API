@@ -5,10 +5,12 @@ import java.util.List;
 import org.springframework.http.ResponseEntity;
 
 import com.school.sba.entity.School;
-import com.school.sba.responsestructure.School_ResponseStructure;
+import com.school.sba.requestdto.SchoolRequestDTO;
+import com.school.sba.responnsedto.SchoolResponseDTO;
+import com.school.sba.util.ResponseStructure;
 
 public interface School_Service {
-	public ResponseEntity<School_ResponseStructure<School>> save(School school);
+	public ResponseEntity<ResponseStructure<SchoolResponseDTO>> saveSchool(int userId, SchoolRequestDTO requestDto);
 
 	public School update(School school);
 

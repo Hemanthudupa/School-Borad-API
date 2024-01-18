@@ -1,4 +1,4 @@
-package com.school.sba.requestdto;
+package com.school.sba.responnsedto;
 
 import com.school.sba.enums.UserRole;
 
@@ -9,7 +9,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @Builder
-public class ResponseDTO {
+public class UserResponseDTO {
 	private int userId;
 	private String userName;
 	private String firstName;

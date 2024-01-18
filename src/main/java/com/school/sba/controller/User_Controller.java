@@ -9,9 +9,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.school.sba.entity.User;
-import com.school.sba.requestdto.RequestDTO;
-import com.school.sba.requestdto.ResponseDTO;
+import com.school.sba.requestdto.UserRequestDTO;
+import com.school.sba.responnsedto.UserResponseDTO;
 import com.school.sba.service.User_Service;
 import com.school.sba.util.ResponseStructure;
 
@@ -21,18 +20,20 @@ public class User_Controller {
 	private User_Service service;
 
 	@PostMapping("/users/register")
-	public ResponseEntity<ResponseStructure<ResponseDTO>> regesterUser(@RequestBody RequestDTO user) {
+	public ResponseEntity<ResponseStructure<UserResponseDTO>> regesterUser(@RequestBody UserRequestDTO user) {
 		return service.regesterUser(user);
 
 	}
 
 	@GetMapping("/users/{userId}")
-	public ResponseEntity<ResponseStructure<ResponseDTO>> findUserById(@PathVariable int userId) {
+	public ResponseEntity<ResponseStructure<UserResponseDTO>> findUserById(@PathVariable int userId) {
 		return service.findUserById(userId);
 	}
 
 	@DeleteMapping("/users/{userId}")
-	public ResponseEntity<ResponseStructure<ResponseDTO>> deleteByUserId(@PathVariable int userId) {
+	public ResponseEntity<ResponseStructure<UserResponseDTO>> deleteByUserId(@PathVariable int userId) {
 		return service.deleteByUserId(userId);
 	}
 }
+
+	
