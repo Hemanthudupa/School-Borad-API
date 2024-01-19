@@ -13,20 +13,20 @@ import com.school.sba.enums.UserRole;
 import com.school.sba.exceptions.SchoolAlreadyPresentException;
 import com.school.sba.exceptions.UnauthorizedAccessSchoolException;
 import com.school.sba.exceptions.UserNotFoundByIdException;
-import com.school.sba.repository.School_Repo;
-import com.school.sba.repository.User_Repo;
+import com.school.sba.repository.SchoolRepo;
+import com.school.sba.repository.UserRepo;
 import com.school.sba.requestdto.SchoolRequestDTO;
 import com.school.sba.responnsedto.SchoolResponseDTO;
 import com.school.sba.service.School_Service;
 import com.school.sba.util.ResponseStructure;
 
 @Service
-public class School_ServiceImpl implements School_Service {
+public class SchoolServiceImpl implements School_Service {
 	@Autowired
-	School_Repo repo;
+	SchoolRepo repo;
 
 	@Autowired
-	User_Repo userRepo;
+	UserRepo userRepo;
 
 	@Autowired	
 	ResponseStructure<SchoolResponseDTO> structure;

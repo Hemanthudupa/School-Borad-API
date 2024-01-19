@@ -12,7 +12,7 @@ import com.school.sba.exceptions.ScheduleNotFoundByIDException;
 import com.school.sba.exceptions.ScheduledAlreadyPresentException;
 import com.school.sba.exceptions.SchoolNotFoundByIdException;
 import com.school.sba.repository.ScheduleRepo;
-import com.school.sba.repository.School_Repo;
+import com.school.sba.repository.SchoolRepo;
 import com.school.sba.requestdto.ScheduleRequestDTO;
 import com.school.sba.responnsedto.ScheduleResponseDTO;
 import com.school.sba.service.ScheduleService;
@@ -25,7 +25,7 @@ public class ScheduleServiceImpl implements ScheduleService {
 	private ScheduleRepo scheduleRepo;
 
 	@Autowired
-	private School_Repo schoolRepo;
+	private SchoolRepo schoolRepo;
 
 	@Autowired
 	private ResponseStructure<ScheduleResponseDTO> structure;

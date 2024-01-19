@@ -2,17 +2,21 @@ package com.school.sba.exception_handlers;
 
 import java.util.Map;
 
+import org.hibernate.engine.spi.Resolution;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import com.school.sba.exceptions.AcademicProgramNotFoundByIdException;
+import com.school.sba.exceptions.AdminCannotBeAddedToAcademicsProgramException;
 import com.school.sba.exceptions.ContraintsValidationException;
 import com.school.sba.exceptions.ExistingAdminException;
 import com.school.sba.exceptions.ScheduleNotFoundByIDException;
 import com.school.sba.exceptions.ScheduledAlreadyPresentException;
 import com.school.sba.exceptions.SchoolAlreadyPresentException;
 import com.school.sba.exceptions.SchoolNotFoundByIdException;
+import com.school.sba.exceptions.SubjectsOnlyAddedToTeacherException;
 import com.school.sba.exceptions.UnauthorizedAccessSchoolException;
 import com.school.sba.exceptions.UserNotFoundByIdException;
 
@@ -64,5 +68,22 @@ public class ApplicationExceptionHandler {
 	@ExceptionHandler(ScheduleNotFoundByIDException.class)
 	public ResponseEntity<Object> scheduleNotFoundByIDException(ScheduleNotFoundByIDException ex) {
 		return structre(HttpStatus.NOT_FOUND, ex.getMessage(), "schedule not found by given id !!!");
+	}
+
+	@ExceptionHandler(AcademicProgramNotFoundByIdException.class)
+	public ResponseEntity<Object> academicProgramNotFoundByIdException(AcademicProgramNotFoundByIdException ex) {
+		return structre(HttpStatus.NOT_FOUND, ex.getMessage(), "invalid ID to find the AcademicProgram");
+	}
+
+	@ExceptionHandler(AdminCannotBeAddedToAcademicsProgramException.class)
+	public ResponseEntity<Object> adminCannotBeAddedToAcademicsProgramException(
+			AdminCannotBeAddedToAcademicsProgramException ex) {
+		return structre(HttpStatus.BAD_REQUEST, ex.getMessage(), "Admin cannot be added to AcademicProgram ");
+	}
+
+	@ExceptionHandler(SubjectsOnlyAddedToTeacherException.class)
+	public ResponseEntity<Object> subjectsOnlyAddedToTeacherException(SubjectsOnlyAddedToTeacherException ex) {
+		return structre(HttpStatus.NOT_FOUND, ex.getMessage(),
+				"Subjects can only added to teacher / not for ADMIN or STUDENT ");
 	}
 }

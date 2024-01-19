@@ -2,17 +2,21 @@ package com.school.sba.serviceimpl;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import com.school.sba.entity.AcademicProgram;
+import com.school.sba.exceptions.AcademicProgramNotFoundByIdException;
+import com.school.sba.exceptions.AdminCannotBeAddedToAcademicsProgramException;
 import com.school.sba.exceptions.SchoolNotFoundByIdException;
+import com.school.sba.exceptions.UserNotFoundByIdException;
 import com.school.sba.repository.AcademicProgramRepo;
-import com.school.sba.repository.School_Repo;
+import com.school.sba.repository.SchoolRepo;
+import com.school.sba.repository.UserRepo;
 import com.school.sba.requestdto.AcademicProgramRequestDto;
 import com.school.sba.responnsedto.AcademicsProgramResponseDto;
 import com.school.sba.service.AcademicProgramService;
@@ -25,7 +29,10 @@ public class AcademicProgramServiceImpl implements AcademicProgramService {
 	private AcademicProgramRepo academicProgramRepo;
 
 	@Autowired
-	private School_Repo schoolRepo;
+	private SchoolRepo schoolRepo;
+
+	@Autowired
+	private UserRepo userRepo;
 
 	@Autowired
 	private ResponseStructure<AcademicsProgramResponseDto> structure;
@@ -38,9 +45,17 @@ public class AcademicProgramServiceImpl implements AcademicProgramService {
 	}
 
 	public AcademicsProgramResponseDto mapToAcademicsProgramResponseDto(AcademicProgram academicProgram) {
+		List<String> names = new ArrayList<>();
+		if (academicProgram.getSubjects() != null) {
+			academicProgram.getSubjects().forEach(subject -> {
+				names.add(subject.getSubjectName());
+			});
+		}
+
 		return AcademicsProgramResponseDto.builder().programId(academicProgram.getProgramId())
 				.beginsAt(academicProgram.getBeginsAt()).endsAt(academicProgram.getEndsAt())
-				.programName(academicProgram.getProgramName()).programType(academicProgram.getProgramType()).build();
+				.programName(academicProgram.getProgramName()).programType(academicProgram.getProgramType())
+				.subjects(names).build();
 	}
 
 	@Override
@@ -74,6 +89,29 @@ public class AcademicProgramServiceImpl implements AcademicProgramService {
 			rs.setStatus(HttpStatus.OK.value());
 			return new ResponseEntity<ResponseStructure<List<AcademicsProgramResponseDto>>>(rs, HttpStatus.OK);
 		}).orElseThrow(() -> new SchoolNotFoundByIdException("invalid school id"));
+	}
+
+	@Override
+	public ResponseEntity<ResponseStructure<AcademicsProgramResponseDto>> addUser(int programId, int userId) {
+
+		return userRepo.findById(userId).map(user -> {
+			if (user.getUserRole().equals("ADMIN")) {
+				throw new AdminCannotBeAddedToAcademicsProgramException("can't add admin");
+			} else {
+				academicProgramRepo.findById(programId).map(program -> {
+
+					if (program.getUsers().contains(user) != true) {
+						program.getUsers().add(user);
+					}
+					structure.setData(mapToAcademicsProgramResponseDto(program));
+					structure.setMessage(" user added successfully");
+					structure.setStatus(HttpStatus.OK.value());
+					return new ResponseEntity<ResponseStructure<AcademicsProgramResponseDto>>(structure, HttpStatus.OK);
+				}).orElseThrow(() -> new AcademicProgramNotFoundByIdException(" invalid academicprogram ID !!!"));
+			}
+			return new ResponseEntity<ResponseStructure<AcademicsProgramResponseDto>>(structure, HttpStatus.OK);
+
+		}).orElseThrow(() -> new UserNotFoundByIdException("invalid user ID !!!"));
 	}
 
 }

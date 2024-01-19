@@ -18,7 +18,7 @@ import com.school.sba.service.School_Service;
 import com.school.sba.util.ResponseStructure;
 
 @RestController
-public class School_Controller {
+public class SchoolController {
 	@Autowired
 	School_Service service;
 
