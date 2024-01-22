@@ -5,23 +5,27 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.school.sba.entity.School;
-import com.school.sba.responsestructure.School_ResponseStructure;
+import com.school.sba.requestdto.SchoolRequestDTO;
+import com.school.sba.responnsedto.SchoolResponseDTO;
 import com.school.sba.service.School_Service;
+import com.school.sba.util.ResponseStructure;
 
 @RestController
-public class School_Controller {
+public class SchoolController {
 	@Autowired
 	School_Service service;
 
-	@PostMapping("/save")
-	public ResponseEntity<School_ResponseStructure<School>> save(@RequestBody School school) {
-		return service.save(school);
+	@PostMapping("/users/{userId}/schools")
+	public ResponseEntity<ResponseStructure<SchoolResponseDTO>> saveSchool(@PathVariable int userId,
+			@RequestBody SchoolRequestDTO requestDto) {
+		return service.saveSchool(userId, requestDto);
 
 	}
 
