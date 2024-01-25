@@ -5,17 +5,13 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
-import com.school.sba.entity.AcademicProgram;
 import com.school.sba.entity.Subject;
 import com.school.sba.exceptions.AcademicProgramNotFoundByIdException;
-import com.school.sba.exceptions.UserNotFoundByIdException;
 import com.school.sba.repository.AcademicProgramRepo;
 import com.school.sba.repository.SubjectRepo;
-import com.school.sba.requestdto.AcademicProgramRequestDto;
 import com.school.sba.requestdto.SubjectRequestDTO;
 import com.school.sba.responnsedto.AcademicsProgramResponseDto;
 import com.school.sba.responnsedto.SubjectResponseDTO;
@@ -47,9 +43,10 @@ public class SubjectServiceImpl implements SubjectService {
 			SubjectRequestDTO subjectRequestDTO) {
 
 		return academicProgramRepo.findById(programId).map(program -> {
-			List<Subject> subjects = new ArrayList<>();
+			List<Subject> subjects = program.getSubjects();
 			subjectRequestDTO.getSubjectNames().forEach(name -> {
 				subjectRepo.findBySubjectName(name).map(subject -> {
+					if(subjects.contains(subject)==false)
 					subjects.add(subject);
 					return subject;
 				}).orElseGet(() -> {

@@ -1,8 +1,7 @@
-package com.school.sba.exception_handlers;
+package com.school.sba.exceptionhandlers;
 
 import java.util.Map;
 
-import org.hibernate.engine.spi.Resolution;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -12,12 +11,16 @@ import com.school.sba.exceptions.AcademicProgramNotFoundByIdException;
 import com.school.sba.exceptions.AdminCannotBeAddedToAcademicsProgramException;
 import com.school.sba.exceptions.ContraintsValidationException;
 import com.school.sba.exceptions.ExistingAdminException;
+import com.school.sba.exceptions.InvalidUserRoleException;
+import com.school.sba.exceptions.NoSubjectFoundInAcademinException;
 import com.school.sba.exceptions.ScheduleNotFoundByIDException;
 import com.school.sba.exceptions.ScheduledAlreadyPresentException;
 import com.school.sba.exceptions.SchoolAlreadyPresentException;
+import com.school.sba.exceptions.SchoolNotFound;
 import com.school.sba.exceptions.SchoolNotFoundByIdException;
 import com.school.sba.exceptions.SubjectsOnlyAddedToTeacherException;
 import com.school.sba.exceptions.UnauthorizedAccessSchoolException;
+import com.school.sba.exceptions.UserIsNotAnAdminException;
 import com.school.sba.exceptions.UserNotFoundByIdException;
 
 @RestControllerAdvice
@@ -85,5 +88,26 @@ public class ApplicationExceptionHandler {
 	public ResponseEntity<Object> subjectsOnlyAddedToTeacherException(SubjectsOnlyAddedToTeacherException ex) {
 		return structre(HttpStatus.NOT_FOUND, ex.getMessage(),
 				"Subjects can only added to teacher / not for ADMIN or STUDENT ");
+	}
+
+	@ExceptionHandler(UserIsNotAnAdminException.class)
+	public ResponseEntity<Object> userIsNotAnAdminException(UserIsNotAnAdminException ex) {
+		return structre(HttpStatus.BAD_REQUEST, ex.getMessage(), "only ADMIN is valid ");
+
+	}
+
+	@ExceptionHandler(SchoolNotFound.class)
+	public ResponseEntity<Object> scheduleNotFoundByIDException(SchoolNotFound ex) {
+		return structre(HttpStatus.NOT_FOUND, ex.getMessage(), "ADMIN not created school !!!");
+	}
+
+	@ExceptionHandler(NoSubjectFoundInAcademinException.class)
+	public ResponseEntity<Object> noSubjectFoundInAcademinException(NoSubjectFoundInAcademinException ex) {
+		return structre(HttpStatus.NOT_FOUND, ex.getMessage(), "subject not found in academic");
+	}
+
+	@ExceptionHandler(InvalidUserRoleException.class)
+	public ResponseEntity<Object> invalidUserRoleException(InvalidUserRoleException ex) {
+		return structre(HttpStatus.NOT_FOUND, ex.getMessage(), "only Teacher can be added ");
 	}
 }
