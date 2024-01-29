@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import com.school.sba.entity.AcademicProgram;
 import com.school.sba.enums.UserRole;
 import com.school.sba.exceptions.AcademicProgramNotFoundByIdException;
+import com.school.sba.exceptions.AcademicsProgramIsNotPresentException;
 import com.school.sba.exceptions.AdminCannotBeAddedToAcademicsProgramException;
 import com.school.sba.exceptions.InvalidUserRoleException;
 import com.school.sba.exceptions.NoSubjectFoundInAcademinException;
@@ -79,17 +80,21 @@ public class AcademicProgramServiceImpl implements AcademicProgramService {
 	@Override
 	public ResponseEntity<ResponseStructure<List<AcademicsProgramResponseDto>>> getAllAcademicProgarm(int schoolId) {
 		return schoolRepo.findById(schoolId).map(school -> {
-			List<AcademicProgram> academicProgram = school.getAcademicProgram();
-			ResponseStructure<List<AcademicsProgramResponseDto>> rs = new ResponseStructure<>();
+			if (!school.getAcademicProgram().isEmpty()) {
+				List<AcademicProgram> academicProgram = school.getAcademicProgram();
+				ResponseStructure<List<AcademicsProgramResponseDto>> rs = new ResponseStructure<>();
 
-			List<AcademicsProgramResponseDto> l = new ArrayList<>();
-			for (AcademicProgram obj : academicProgram) {
-				l.add(mapToAcademicsProgramResponseDto(obj));
+				List<AcademicsProgramResponseDto> l = new ArrayList<>();
+				for (AcademicProgram obj : academicProgram) {
+					l.add(mapToAcademicsProgramResponseDto(obj));
+				}
+				rs.setData(l);
+				rs.setMessage("successfully fetched ");
+				rs.setStatus(HttpStatus.OK.value());
+				return new ResponseEntity<ResponseStructure<List<AcademicsProgramResponseDto>>>(rs, HttpStatus.OK);
+			} else {
+				throw new AcademicsProgramIsNotPresentException(" Academics not assigned to School!!!!");
 			}
-			rs.setData(l);
-			rs.setMessage("successfully fetched ");
-			rs.setStatus(HttpStatus.OK.value());
-			return new ResponseEntity<ResponseStructure<List<AcademicsProgramResponseDto>>>(rs, HttpStatus.OK);
 		}).orElseThrow(() -> new SchoolNotFoundByIdException("invalid school id"));
 	}
 

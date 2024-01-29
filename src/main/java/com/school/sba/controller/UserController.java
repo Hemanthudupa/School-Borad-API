@@ -11,11 +11,12 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.school.sba.entity.School;
 import com.school.sba.requestdto.UserRequestDTO;
 import com.school.sba.responnsedto.UserResponseDTO;
 import com.school.sba.service.User_Service;
 import com.school.sba.util.ResponseStructure;
+
+import jakarta.validation.Valid;
 
 @RestController
 public class UserController {
@@ -23,7 +24,7 @@ public class UserController {
 	private User_Service service;
 
 	@PostMapping("/users")
-	public ResponseEntity<ResponseStructure<UserResponseDTO>> regesterAdmin(@RequestBody UserRequestDTO user) {
+	public ResponseEntity<ResponseStructure<UserResponseDTO>> regesterAdmin(@Valid @RequestBody UserRequestDTO user) {
 		return service.regesterAdmin(user);
 
 	}
