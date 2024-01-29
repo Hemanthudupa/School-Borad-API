@@ -35,8 +35,8 @@ public class AcademicProgramController {
 	}
 
 	@PutMapping("/academic-programs/{programId}/users/{userId}")
-	public ResponseEntity<ResponseStructure<AcademicsProgramResponseDto>> addUser(@PathVariable int programId,
+	public ResponseEntity<ResponseStructure<AcademicsProgramResponseDto>> assignUser(@PathVariable int programId,
 			@PathVariable int userId) {
-		return service.addUser(programId, userId);
+		return service.assignUser(programId, userId);
 	}
 }

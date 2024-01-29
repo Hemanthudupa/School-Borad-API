@@ -1,31 +1,63 @@
-package com.school.sba.exception_handlers;
+package com.school.sba.exceptionhandlers;
 
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
-import org.hibernate.engine.spi.Resolution;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.FieldError;
+import org.springframework.validation.ObjectError;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.context.request.WebRequest;
+import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
 import com.school.sba.exceptions.AcademicProgramNotFoundByIdException;
+import com.school.sba.exceptions.AcademicsProgramIsNotPresentException;
 import com.school.sba.exceptions.AdminCannotBeAddedToAcademicsProgramException;
+import com.school.sba.exceptions.ClassRoomNotFreeException;
 import com.school.sba.exceptions.ContraintsValidationException;
 import com.school.sba.exceptions.ExistingAdminException;
+import com.school.sba.exceptions.InvalidClassHourIdException;
+import com.school.sba.exceptions.InvalidUserRoleException;
+import com.school.sba.exceptions.NoSubjectFoundInAcademinException;
 import com.school.sba.exceptions.ScheduleNotFoundByIDException;
+import com.school.sba.exceptions.ScheduleNotFoundInSchoolException;
 import com.school.sba.exceptions.ScheduledAlreadyPresentException;
 import com.school.sba.exceptions.SchoolAlreadyPresentException;
+import com.school.sba.exceptions.SchoolNotFound;
 import com.school.sba.exceptions.SchoolNotFoundByIdException;
+import com.school.sba.exceptions.SubjectNotFoundExceptionByID;
 import com.school.sba.exceptions.SubjectsOnlyAddedToTeacherException;
 import com.school.sba.exceptions.UnauthorizedAccessSchoolException;
+import com.school.sba.exceptions.UserIsNotAnAdminException;
 import com.school.sba.exceptions.UserNotFoundByIdException;
 
 @RestControllerAdvice
-public class ApplicationExceptionHandler {
+public class ApplicationExceptionHandler extends ResponseEntityExceptionHandler {
+
+	@Override
+	protected ResponseEntity<Object> handleMethodArgumentNotValid(MethodArgumentNotValidException ex,
+			HttpHeaders headers, HttpStatusCode status, WebRequest request) {
+		List<ObjectError> allErrors = ex.getAllErrors();
+
+		System.err.println(" entered ");
+		Map<String, String> map = new HashMap<>();
+
+		allErrors.forEach(error -> {
+			FieldError fieldError = (FieldError) error;
+			map.put(fieldError.getField(), fieldError.getDefaultMessage());
+		});
+		System.err.println(" Closed ");
+		return structre(HttpStatus.BAD_REQUEST, ex.getMessage(), map);
+	}
 
 	public ResponseEntity<Object> structre(HttpStatus status, String message, Object rootCause) {
-		return new ResponseEntity<Object>(
-				Map.of("status", HttpStatus.BAD_REQUEST.value(), "message", message, "rootcause", rootCause),
+		return new ResponseEntity<Object>(Map.of("status", status.value(), "message", message, "rootcause", rootCause),
 				HttpStatus.BAD_REQUEST);
 	}
 
@@ -85,5 +117,52 @@ public class ApplicationExceptionHandler {
 	public ResponseEntity<Object> subjectsOnlyAddedToTeacherException(SubjectsOnlyAddedToTeacherException ex) {
 		return structre(HttpStatus.NOT_FOUND, ex.getMessage(),
 				"Subjects can only added to teacher / not for ADMIN or STUDENT ");
+	}
+
+	@ExceptionHandler(UserIsNotAnAdminException.class)
+	public ResponseEntity<Object> userIsNotAnAdminException(UserIsNotAnAdminException ex) {
+		return structre(HttpStatus.BAD_REQUEST, ex.getMessage(), "only ADMIN is valid ");
+
+	}
+
+	@ExceptionHandler(SchoolNotFound.class)
+	public ResponseEntity<Object> scheduleNotFoundByIDException(SchoolNotFound ex) {
+		return structre(HttpStatus.NOT_FOUND, ex.getMessage(), "ADMIN not created school !!!");
+	}
+
+	@ExceptionHandler(NoSubjectFoundInAcademinException.class)
+	public ResponseEntity<Object> noSubjectFoundInAcademinException(NoSubjectFoundInAcademinException ex) {
+		return structre(HttpStatus.NOT_FOUND, ex.getMessage(), "subject not found in academic");
+	}
+
+	@ExceptionHandler(InvalidUserRoleException.class)
+	public ResponseEntity<Object> invalidUserRoleException(InvalidUserRoleException ex) {
+		return structre(HttpStatus.NOT_FOUND, ex.getMessage(), "only Teacher can be added ");
+	}
+
+	@ExceptionHandler(ScheduleNotFoundInSchoolException.class)
+	public ResponseEntity<Object> scheduleNotFoundInSchoolException(ScheduleNotFoundInSchoolException ex) {
+		return structre(HttpStatus.NOT_FOUND, ex.getMessage(), "schedule not found in school  ");
+	}
+
+	@ExceptionHandler(SubjectNotFoundExceptionByID.class)
+	public ResponseEntity<Object> subjectNotFoundExceptionByID(SubjectNotFoundExceptionByID ex) {
+		return structre(HttpStatus.NOT_FOUND, ex.getMessage(), "subject not found by ID  ");
+	}
+
+	@ExceptionHandler(AcademicsProgramIsNotPresentException.class)
+	public ResponseEntity<Object> academicsProgramIsNotPresentException(AcademicsProgramIsNotPresentException ex) {
+		return structre(HttpStatus.NOT_FOUND, ex.getMessage(), "Acadmics  not found in the school  ");
+	}
+
+	@ExceptionHandler(InvalidClassHourIdException.class)
+	public ResponseEntity<Object> invalidClassHourIdException(InvalidClassHourIdException ex) {
+		return structre(HttpStatus.BAD_REQUEST, ex.getMessage(), "invalid class hour id !!!!");
+	}
+
+	@ExceptionHandler(ClassRoomNotFreeException.class)
+	public ResponseEntity<Object> classRoomNotFoundException(ClassRoomNotFreeException ex) {
+		return structre(HttpStatus.BAD_REQUEST, ex.getMessage(),
+				"invalid class room becuase class is not free at this time  !!!!");
 	}
 }

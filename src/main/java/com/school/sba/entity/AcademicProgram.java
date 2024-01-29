@@ -6,11 +6,16 @@ import java.util.List;
 import com.school.sba.enums.ProgramType;
 
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -27,6 +32,7 @@ public class AcademicProgram {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private int programId;
+	@Enumerated(EnumType.STRING)
 	private ProgramType programType;
 	private String programName;
 	private LocalTime beginsAt;
@@ -38,5 +44,9 @@ public class AcademicProgram {
 	private List<Subject> subjects;
 
 	@ManyToMany
+	@JoinTable(name = "academicProgram_users", joinColumns = @JoinColumn(name = "programID"), inverseJoinColumns = @JoinColumn(name = "userID"))
 	private List<User> users;
+
+	@OneToMany
+	private List<ClassHour> classHours;
 }

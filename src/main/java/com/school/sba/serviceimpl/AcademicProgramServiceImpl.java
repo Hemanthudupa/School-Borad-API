@@ -5,13 +5,16 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import com.school.sba.entity.AcademicProgram;
+import com.school.sba.enums.UserRole;
 import com.school.sba.exceptions.AcademicProgramNotFoundByIdException;
+import com.school.sba.exceptions.AcademicsProgramIsNotPresentException;
 import com.school.sba.exceptions.AdminCannotBeAddedToAcademicsProgramException;
+import com.school.sba.exceptions.InvalidUserRoleException;
+import com.school.sba.exceptions.NoSubjectFoundInAcademinException;
 import com.school.sba.exceptions.SchoolNotFoundByIdException;
 import com.school.sba.exceptions.UserNotFoundByIdException;
 import com.school.sba.repository.AcademicProgramRepo;
@@ -77,31 +80,43 @@ public class AcademicProgramServiceImpl implements AcademicProgramService {
 	@Override
 	public ResponseEntity<ResponseStructure<List<AcademicsProgramResponseDto>>> getAllAcademicProgarm(int schoolId) {
 		return schoolRepo.findById(schoolId).map(school -> {
-			List<AcademicProgram> academicProgram = school.getAcademicProgram();
-			ResponseStructure<List<AcademicsProgramResponseDto>> rs = new ResponseStructure<>();
+			if (!school.getAcademicProgram().isEmpty()) {
+				List<AcademicProgram> academicProgram = school.getAcademicProgram();
+				ResponseStructure<List<AcademicsProgramResponseDto>> rs = new ResponseStructure<>();
 
-			List<AcademicsProgramResponseDto> l = new ArrayList<>();
-			for (AcademicProgram obj : academicProgram) {
-				l.add(mapToAcademicsProgramResponseDto(obj));
+				List<AcademicsProgramResponseDto> l = new ArrayList<>();
+				for (AcademicProgram obj : academicProgram) {
+					l.add(mapToAcademicsProgramResponseDto(obj));
+				}
+				rs.setData(l);
+				rs.setMessage("successfully fetched ");
+				rs.setStatus(HttpStatus.OK.value());
+				return new ResponseEntity<ResponseStructure<List<AcademicsProgramResponseDto>>>(rs, HttpStatus.OK);
+			} else {
+				throw new AcademicsProgramIsNotPresentException(" Academics not assigned to School!!!!");
 			}
-			rs.setData(l);
-			rs.setMessage("successfully fetched ");
-			rs.setStatus(HttpStatus.OK.value());
-			return new ResponseEntity<ResponseStructure<List<AcademicsProgramResponseDto>>>(rs, HttpStatus.OK);
 		}).orElseThrow(() -> new SchoolNotFoundByIdException("invalid school id"));
 	}
 
 	@Override
-	public ResponseEntity<ResponseStructure<AcademicsProgramResponseDto>> addUser(int programId, int userId) {
+	public ResponseEntity<ResponseStructure<AcademicsProgramResponseDto>> assignUser(int programId, int userId) {
 
 		return userRepo.findById(userId).map(user -> {
-			if (user.getUserRole().equals("ADMIN")) {
+			if (user.getUserRole().toString().equals("ADMIN")) {
 				throw new AdminCannotBeAddedToAcademicsProgramException("can't add admin");
 			} else {
 				academicProgramRepo.findById(programId).map(program -> {
 
-					if (program.getUsers().contains(user) != true) {
-						program.getUsers().add(user);
+					if (program.getUsers().contains(user) != true && user.getUserRole() == UserRole.TEACHER) {
+//						program.getUsers().add(user);
+						if (program.getSubjects().contains(user.getSubject())) {
+							program.getUsers().add(user);
+							academicProgramRepo.save(program);
+						} else {
+							throw new NoSubjectFoundInAcademinException("invlaid subject from the user ");
+						}
+					} else {
+						throw new InvalidUserRoleException("only teacher allowed");
 					}
 					structure.setData(mapToAcademicsProgramResponseDto(program));
 					structure.setMessage(" user added successfully");

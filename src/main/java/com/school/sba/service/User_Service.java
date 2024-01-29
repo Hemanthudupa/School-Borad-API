@@ -8,7 +8,7 @@ import com.school.sba.util.ResponseStructure;
 
 public interface User_Service {
 
-	ResponseEntity<ResponseStructure<UserResponseDTO>> regesterUser(UserRequestDTO user);
+	ResponseEntity<ResponseStructure<UserResponseDTO>> regesterAdmin(UserRequestDTO user);
 
 	ResponseEntity<ResponseStructure<UserResponseDTO>> findUserById(int userId);
 
@@ -16,4 +16,5 @@ public interface User_Service {
 
 	ResponseEntity<ResponseStructure<UserResponseDTO>> addSubject(int subjectId, int userId);
 
+	ResponseEntity<ResponseStructure<UserResponseDTO>> addOtherUsers(UserRequestDTO user);
 }

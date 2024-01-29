@@ -4,14 +4,20 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.school.sba.entity.User;
 import com.school.sba.enums.UserRole;
+import com.school.sba.exceptions.AdminCannotBeAddedToAcademicsProgramException;
 import com.school.sba.exceptions.ContraintsValidationException;
 import com.school.sba.exceptions.ExistingAdminException;
+import com.school.sba.exceptions.SchoolNotFound;
+import com.school.sba.exceptions.SchoolNotFoundByIdException;
 import com.school.sba.exceptions.SubjectNotFoundExceptionByID;
 import com.school.sba.exceptions.SubjectsOnlyAddedToTeacherException;
+import com.school.sba.exceptions.UserIsNotAnAdminException;
 import com.school.sba.exceptions.UserNotFoundByIdException;
 import com.school.sba.repository.SubjectRepo;
 import com.school.sba.repository.UserRepo;
@@ -31,11 +37,15 @@ public class UserServiceImpl implements User_Service {
 	@Autowired
 	private SubjectRepo subjectRepo;
 
+	@Autowired
+	private PasswordEncoder passwordEncoder;
+
 	private User mapToUser(UserRequestDTO request) {
 
 		return User.builder().email(request.getEmail()).contactNo(request.getContactNo())
 				.firstName(request.getFirstName()).lastName(request.getLastName()).password(request.getPassword())
-				.userName(request.getUserName()).userRole(request.getUserRole()).isDelete(false).build();
+				.userName(request.getUserName()).userRole(request.getUserRole()).isDelete(false)
+				.password(passwordEncoder.encode(request.getPassword())).build();
 	}
 
 	private UserResponseDTO mapToUserResponse(User user) {
@@ -53,7 +63,7 @@ public class UserServiceImpl implements User_Service {
 	}
 
 	@Override
-	public ResponseEntity<ResponseStructure<UserResponseDTO>> regesterUser(UserRequestDTO user) {
+	public ResponseEntity<ResponseStructure<UserResponseDTO>> regesterAdmin(UserRequestDTO user) {
 
 		if (user.getUserRole() == UserRole.ADMIN) {
 			if (userRepo.existsByUserRole(user.getUserRole()) != true) {
@@ -70,17 +80,19 @@ public class UserServiceImpl implements User_Service {
 			} else {
 				throw new ExistingAdminException("ADMIN alredy existed ");
 			}
+		} else {
+			throw new UserIsNotAnAdminException("not an admin");
 		}
-		User userEntity = null;
-		try {
-			userEntity = userRepo.save(mapToUser(user));
-		} catch (Exception e) {
-			throw new ContraintsValidationException("no duplicate values");
 
-		}
-		return new ResponseEntity<ResponseStructure<UserResponseDTO>>(new ResponseStructure<UserResponseDTO>(
-				HttpStatus.OK.value(), "user added successfully ", mapToUserResponse(userEntity)), HttpStatus.CREATED);
-
+//		User userEntity = null;
+//		try {
+//			userEntity = userRepo.save(mapToUser(user));
+//		} catch (Exception e) {
+//			throw new ContraintsValidationException("no duplicate values");
+//
+//		}
+//		return new ResponseEntity<ResponseStructure<UserResponseDTO>>(new ResponseStructure<UserResponseDTO>(
+//				HttpStatus.OK.value(), "user added successfully ", mapToUserResponse(userEntity)), HttpStatus.CREATED);
 	}
 
 	private User getById(int userId) {
@@ -143,6 +155,29 @@ public class UserServiceImpl implements User_Service {
 			structure.setStatus(HttpStatus.OK.value());
 			return new ResponseEntity<ResponseStructure<UserResponseDTO>>(structure, HttpStatus.OK);
 		}).orElseThrow(() -> new UserNotFoundByIdException("invalid Id "));
+
+	}
+
+	@Override
+	public ResponseEntity<ResponseStructure<UserResponseDTO>> addOtherUsers(UserRequestDTO requestDTO) {
+		String authenticatedName = SecurityContextHolder.getContext().getAuthentication().getName();
+		return userRepo.findByUserName(authenticatedName).map(user -> {
+			if (user.getSchool() != null) {
+				if (requestDTO.getUserRole().equals(UserRole.STUDENT)
+						|| requestDTO.getUserRole().equals(UserRole.TEACHER)) {
+					User mapToUser = mapToUser(requestDTO);
+					mapToUser.setSchool(user.getSchool());
+
+					structure.setData(mapToUserResponse(userRepo.save(mapToUser)));
+					structure.setMessage("school added to this user !!!");
+					structure.setStatus(HttpStatus.CREATED.value());
+
+				}
+			} else {
+				throw new SchoolNotFound("school not found ");
+			}
+			return new ResponseEntity<ResponseStructure<UserResponseDTO>>(structure, HttpStatus.CREATED);
+		}).orElseThrow(() -> new UserIsNotAnAdminException("admin required!!!"));
 
 	}
 }
