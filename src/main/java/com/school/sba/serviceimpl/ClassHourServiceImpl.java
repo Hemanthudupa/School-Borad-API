@@ -156,35 +156,41 @@ public class ClassHourServiceImpl implements ClassHourService {
 		ArrayList<ClassHourResponseDTO> alist = new ArrayList<>();
 		if (!classHours.isEmpty()) {
 			classHours.forEach(classHour -> {
-				classHourRepo.findByClassHourID(classHour.getClassHourId()).map(classHourdb -> {
+				classHourRepo.findById(classHour.getClassHourId()).map(classHourdb -> {
 					if (!classHourRepo.existsByBeginsAtLocalTimeAndRoomNo(classHourdb.getBeginsAtLocalTime(),
 							classHour.getRoomNo())) {
-						if (classHourdb.getBeginsAtLocalTime().isEqual(LocalDateTime.now())) {
-							classHourdb.setRoomNo(classHour.getRoomNo());
-							classHourdb.setClassStatus(ClassStatus.ONGOING);
-						} else if (classHourdb.getBeginsAtLocalTime().toLocalTime().equals(userRepo
-								.findById(classHour.getUserId()).get().getSchool().getSchedule().getLunchTime())) {
-							classHourdb.setClassStatus(ClassStatus.LUNCH_TIME);
+						subjectRepo.findById(classHour.getSubjectId()).map(subject -> {
 
-						} else if (classHourdb.getBeginsAtLocalTime().toLocalTime().equals(userRepo
-								.findById(classHour.getUserId()).get().getSchool().getSchedule().getBreakTime())) {
-							classHourdb.setClassStatus(ClassStatus.BREAK_TIME);
+							if (LocalDateTime.now().isBefore(classHourdb.getEndsALocalTime())
+									&& LocalDateTime.now().isAfter(classHourdb.getBeginsAtLocalTime())) {
+								classHourdb.setRoomNo(classHour.getRoomNo());
+								classHourdb.setSubject(subject);
+								classHourdb.setClassStatus(ClassStatus.ONGOING);
+							} else if (classHourdb.getBeginsAtLocalTime().toLocalTime().equals(userRepo
+									.findById(classHour.getUserId()).get().getSchool().getSchedule().getLunchTime())) {
+								classHourdb.setClassStatus(ClassStatus.LUNCH_TIME);
+								classHourdb.setSubject(null);
 
-						} else if (classHourdb.getBeginsAtLocalTime().isBefore(LocalDateTime.now())) {
-							classHourdb.setRoomNo(classHour.getRoomNo());
-							classHourdb.setClassStatus(ClassStatus.COMPLETED);
-						} else if (classHourdb.getBeginsAtLocalTime().isAfter(LocalDateTime.now())) {
-							classHourdb.setRoomNo(classHour.getRoomNo());
-							classHourdb.setClassStatus(ClassStatus.UPCOMING);
-						}
+							} else if (classHourdb.getBeginsAtLocalTime().toLocalTime().equals(userRepo
+									.findById(classHour.getUserId()).get().getSchool().getSchedule().getBreakTime())) {
+								classHourdb.setClassStatus(ClassStatus.BREAK_TIME);
+								classHourdb.setSubject(null);
+
+							} else if (classHourdb.getBeginsAtLocalTime().isBefore(LocalDateTime.now())) {
+								classHourdb.setRoomNo(classHour.getRoomNo());
+								classHourdb.setSubject(subject);
+								classHourdb.setClassStatus(ClassStatus.COMPLETED);
+							} else if (classHourdb.getBeginsAtLocalTime().isAfter(LocalDateTime.now())) {
+								classHourdb.setRoomNo(classHour.getRoomNo());
+								classHourdb.setSubject(subject);
+								classHourdb.setClassStatus(ClassStatus.UPCOMING);
+							}
+							return classHourdb;
+						}).orElseThrow(() -> new SubjectNotFoundExceptionByID("invalid Subject ID  !!!"));
 					} else {
 						throw new ClassRoomNotFreeException(" not free !!!");
 					}
-					subjectRepo.findById(classHour.getSubjectId()).map(subject -> {
 
-						classHourdb.setSubject(subject);
-						return classHourdb;
-					}).orElseThrow(() -> new SubjectNotFoundExceptionByID("invalid Subject ID  !!!"));
 					userRepo.findById(classHour.getUserId()).map(user -> {
 
 						if (user.getUserRole().toString().equals("TEACHER")) {
@@ -204,6 +210,5 @@ public class ClassHourServiceImpl implements ClassHourService {
 			});
 		}
 		return new ResponseEntity<ResponseStructure<List<ClassHourResponseDTO>>>(responseStructure, HttpStatus.OK);
-
 	}
 }

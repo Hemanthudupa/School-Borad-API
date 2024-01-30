@@ -9,10 +9,9 @@ import com.school.sba.entity.ClassHour;
 
 public interface ClassHourRepo extends JpaRepository<ClassHour, Integer> {
 
-	Optional<ClassHour> findByClassHourID(int userId);
-
-//	boolean existByRoomNoAndBeginsAtLocalTime(LocalDateTime beginsAtLocalTime, int roomNo);
 
 	public boolean existsByBeginsAtLocalTimeAndRoomNo(LocalDateTime beginsAt, int roomNo);
+
+//	public boolean existsByRoomNoAndBeginsAtBetween(int roomNo, LocalDateTime startTime, LocalDateTime endTime);
 
 }

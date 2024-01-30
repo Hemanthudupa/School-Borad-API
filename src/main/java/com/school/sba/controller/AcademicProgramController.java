@@ -15,6 +15,8 @@ import com.school.sba.requestdto.AcademicProgramRequestDto;
 import com.school.sba.responnsedto.AcademicsProgramResponseDto;
 import com.school.sba.service.AcademicProgramService;
 import com.school.sba.util.ResponseStructure;
+import org.springframework.web.bind.annotation.RequestParam;
+
 
 @RestController
 public class AcademicProgramController {
@@ -39,4 +41,5 @@ public class AcademicProgramController {
 			@PathVariable int userId) {
 		return service.assignUser(programId, userId);
 	}
+	
 }
