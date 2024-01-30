@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import com.school.sba.entity.AcademicProgram;
+import com.school.sba.entity.User;
 import com.school.sba.enums.UserRole;
 import com.school.sba.exceptions.AcademicProgramNotFoundByIdException;
 import com.school.sba.exceptions.AcademicsProgramIsNotPresentException;
@@ -17,11 +18,13 @@ import com.school.sba.exceptions.InvalidUserRoleException;
 import com.school.sba.exceptions.NoSubjectFoundInAcademinException;
 import com.school.sba.exceptions.SchoolNotFoundByIdException;
 import com.school.sba.exceptions.UserNotFoundByIdException;
+import com.school.sba.exceptions.UsersNotFoundInAcademicProgramException;
 import com.school.sba.repository.AcademicProgramRepo;
 import com.school.sba.repository.SchoolRepo;
 import com.school.sba.repository.UserRepo;
 import com.school.sba.requestdto.AcademicProgramRequestDto;
 import com.school.sba.responnsedto.AcademicsProgramResponseDto;
+import com.school.sba.responnsedto.UserResponseDTO;
 import com.school.sba.service.AcademicProgramService;
 import com.school.sba.util.ResponseStructure;
 
@@ -36,6 +39,9 @@ public class AcademicProgramServiceImpl implements AcademicProgramService {
 
 	@Autowired
 	private UserRepo userRepo;
+
+	@Autowired
+	private UserServiceImpl userServiceImpl;
 
 	@Autowired
 	private ResponseStructure<AcademicsProgramResponseDto> structure;
@@ -127,6 +133,38 @@ public class AcademicProgramServiceImpl implements AcademicProgramService {
 			return new ResponseEntity<ResponseStructure<AcademicsProgramResponseDto>>(structure, HttpStatus.OK);
 
 		}).orElseThrow(() -> new UserNotFoundByIdException("invalid user ID !!!"));
+	}
+
+	@Override
+	public ResponseEntity<ResponseStructure<List<UserResponseDTO>>> fecthUsersByRole(int programId, String role) {
+		ArrayList<UserResponseDTO> alist = new ArrayList<>();
+		academicProgramRepo.findById(programId).map(program -> {
+			if (program.getUsers() != null) {
+				program.getUsers().forEach(user -> {
+					if (!role.equalsIgnoreCase("admin")) {
+
+						if (user.getUserRole().toString().equalsIgnoreCase(role)) {
+							alist.add(userServiceImpl.mapToUserResponse(user));
+						} else {
+							throw new UsersNotFoundInAcademicProgramException(role + " is not found in the academics ");
+						}
+					} else {
+						throw new AdminCannotBeAddedToAcademicsProgramException(
+								"admin cannot able present in the acadamics ");
+					}
+				});
+			} else {
+				throw new UsersNotFoundInAcademicProgramException("users not present in Academic program");
+			}
+			return alist;
+		}).orElseThrow(() -> new AcademicProgramNotFoundByIdException("Invalid program ID !!"));
+		ResponseStructure<List<UserResponseDTO>> structure = new ResponseStructure<>();
+
+		structure.setData(alist);
+		structure.setMessage("users fecthed successfully ");
+		structure.setStatus(HttpStatus.OK.value());
+
+		return new ResponseEntity<ResponseStructure<List<UserResponseDTO>>>(structure, HttpStatus.OK);
 	}
 
 }

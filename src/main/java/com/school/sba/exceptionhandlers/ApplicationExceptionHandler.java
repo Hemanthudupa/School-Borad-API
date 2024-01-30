@@ -36,6 +36,7 @@ import com.school.sba.exceptions.SubjectsOnlyAddedToTeacherException;
 import com.school.sba.exceptions.UnauthorizedAccessSchoolException;
 import com.school.sba.exceptions.UserIsNotAnAdminException;
 import com.school.sba.exceptions.UserNotFoundByIdException;
+import com.school.sba.exceptions.UsersNotFoundInAcademicProgramException;
 
 @RestControllerAdvice
 public class ApplicationExceptionHandler extends ResponseEntityExceptionHandler {
@@ -164,5 +165,11 @@ public class ApplicationExceptionHandler extends ResponseEntityExceptionHandler 
 	public ResponseEntity<Object> classRoomNotFoundException(ClassRoomNotFreeException ex) {
 		return structre(HttpStatus.BAD_REQUEST, ex.getMessage(),
 				"invalid class room becuase class is not free at this time  !!!!");
+	}
+	
+	@ExceptionHandler(UsersNotFoundInAcademicProgramException.class)
+	public ResponseEntity<Object> classRoomNotFoundException(UsersNotFoundInAcademicProgramException ex) {
+		return structre(HttpStatus.BAD_REQUEST, ex.getMessage(),
+				"users not available in the academic program   !!!!");
 	}
 }

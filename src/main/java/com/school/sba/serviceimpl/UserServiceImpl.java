@@ -48,7 +48,7 @@ public class UserServiceImpl implements User_Service {
 				.password(passwordEncoder.encode(request.getPassword())).build();
 	}
 
-	private UserResponseDTO mapToUserResponse(User user) {
+	public UserResponseDTO mapToUserResponse(User user) {
 		return UserResponseDTO.builder().contactNo(user.getContactNo()).email(user.getEmail())
 				.firstName(user.getFirstName()).lastName(user.getLastName()).userId(user.getUserId())
 				.userName(user.getUserName()).userRole(user.getUserRole()).build();
