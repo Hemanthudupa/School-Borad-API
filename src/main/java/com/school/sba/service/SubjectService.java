@@ -19,4 +19,6 @@ public interface SubjectService {
 
 	ResponseEntity<ResponseStructure<List<SubjectResponseDTO>>> findAllSubjects();
 
+	ResponseEntity<ResponseStructure<SubjectResponseDTO>> delete(int id);
+
 }

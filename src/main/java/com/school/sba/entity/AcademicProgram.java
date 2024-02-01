@@ -47,6 +47,9 @@ public class AcademicProgram {
 	@JoinTable(name = "academicProgram_users", joinColumns = @JoinColumn(name = "programID"), inverseJoinColumns = @JoinColumn(name = "userID"))
 	private List<User> users;
 
-	@OneToMany
+	@OneToMany(mappedBy = "academicProgram")
 	private List<ClassHour> classHours;
+
+	private boolean isDeleted;
+
 }

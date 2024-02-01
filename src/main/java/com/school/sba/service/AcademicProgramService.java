@@ -4,10 +4,8 @@ import java.util.List;
 
 import org.springframework.http.ResponseEntity;
 
-import com.school.sba.entity.User;
 import com.school.sba.requestdto.AcademicProgramRequestDto;
 import com.school.sba.responnsedto.AcademicsProgramResponseDto;
-import com.school.sba.responnsedto.UserResponseDTO;
 import com.school.sba.util.ResponseStructure;
 
 public interface AcademicProgramService {
@@ -19,6 +17,8 @@ public interface AcademicProgramService {
 
 	ResponseEntity<ResponseStructure<AcademicsProgramResponseDto>> assignUser(int programId, int userId);
 
-	ResponseEntity<ResponseStructure<List<UserResponseDTO>>> fecthUsersByRole(int programId, String role);
+	ResponseEntity<ResponseStructure<AcademicsProgramResponseDto>> deleteAcademicProgram(int programId);
+
+	void permanentDeleteAP();
 
 }

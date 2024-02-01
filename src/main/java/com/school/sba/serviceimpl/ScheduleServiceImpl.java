@@ -1,12 +1,15 @@
 package com.school.sba.serviceimpl;
 
 import java.time.Duration;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import com.school.sba.entity.ClassHour;
 import com.school.sba.entity.Schedule;
 import com.school.sba.exceptions.ScheduleNotFoundByIDException;
 import com.school.sba.exceptions.ScheduledAlreadyPresentException;
@@ -14,6 +17,7 @@ import com.school.sba.exceptions.SchoolNotFoundByIdException;
 import com.school.sba.repository.ScheduleRepo;
 import com.school.sba.repository.SchoolRepo;
 import com.school.sba.requestdto.ScheduleRequestDTO;
+import com.school.sba.responnsedto.ClassHourResponseDTO;
 import com.school.sba.responnsedto.ScheduleResponseDTO;
 import com.school.sba.service.ScheduleService;
 import com.school.sba.util.ResponseStructure;
@@ -46,7 +50,7 @@ public class ScheduleServiceImpl implements ScheduleService {
 				.classHourLengthInMinutes((int) schedule.getClassHourLength().toMinutes())
 				.breakLengthInMinutes((int) schedule.getBreakLength().toMinutes())
 				.breakLengthInMinutes((int) schedule.getBreakLength().toMinutes())
-				.lunchLengthInMinutes((int)schedule.getLunchLength().toMinutes()).lunchTime(schedule.getLunchTime())
+				.lunchLengthInMinutes((int) schedule.getLunchLength().toMinutes()).lunchTime(schedule.getLunchTime())
 				.breakTime(schedule.getBreakTime()).build();
 
 	}
@@ -101,6 +105,19 @@ public class ScheduleServiceImpl implements ScheduleService {
 			structure.setStatus(HttpStatus.OK.value());
 			return new ResponseEntity<ResponseStructure<ScheduleResponseDTO>>(structure, HttpStatus.OK);
 		}).orElseThrow(() -> new ScheduleNotFoundByIDException(" invalid id !!!"));
+	}
+
+	public ResponseEntity<ResponseStructure<List<ScheduleResponseDTO>>> deleteClassHour(List<Schedule> schedules) {
+		ArrayList<ScheduleResponseDTO> aList = new ArrayList<>();
+		schedules.forEach(schedule -> {
+			scheduleRepo.delete(schedule);
+			aList.add(mapToScheduleResponse(schedule));
+		});
+		ResponseStructure<List<ScheduleResponseDTO>> structure = new ResponseStructure<>();
+		structure.setData(aList);
+		structure.setMessage("deleted successfully");
+		structure.setStatus(HttpStatus.ACCEPTED.value());
+		return new ResponseEntity<ResponseStructure<List<ScheduleResponseDTO>>>(structure, HttpStatus.OK);
 	}
 
 }

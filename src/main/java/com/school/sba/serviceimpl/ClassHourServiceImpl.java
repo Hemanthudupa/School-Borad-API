@@ -69,11 +69,11 @@ public class ClassHourServiceImpl implements ClassHourService {
 		return currentTime.toLocalTime().isAfter(breakTimeStart) && currentTime.toLocalTime().isBefore(breakTimeEnd);
 	}
 
-	public ClassHourResponseDTO mapToResponseDTO(ClassHour classHour) {
-		return ClassHourResponseDTO.builder().beginsAtLocalTime(classHour.getBeginsAtLocalTime())
-				.classHourId(classHour.getClassHourID()).classStatus(classHour.getClassStatus())
-				.endsALocalTime(classHour.getEndsALocalTime()).roomNumber(classHour.getRoomNo()).build();
-	}
+//	public ClassHourResponseDTO mapToResponseDTO(ClassHour classHour) {
+//		return ClassHourResponseDTO.builder().beginsAtLocalTime(classHour.getBeginsAtLocalTime())
+//				.classHourId(classHour.getClassHourID()).classStatus(classHour.getClassStatus())
+//				.endsALocalTime(classHour.getEndsALocalTime()).roomNumber(classHour.getRoomNo()).build();
+//	}
 
 	@Override
 	public ResponseEntity<ResponseStructure<List<ClassHourResponseDTO>>> generateClassHour(int programID) {
@@ -81,6 +81,8 @@ public class ClassHourServiceImpl implements ClassHourService {
 		return academicProgramRepo.findById(programID).map(program -> {
 			Schedule schedule = program.getSchool().getSchedule();
 			List<ClassHourResponseDTO> responses = new ArrayList<>();
+
+			List<ClassHour> classHours = new ArrayList<>();
 
 			if (schedule != null) {
 				long classHoursInMinutes = schedule.getClassHourLength().toMinutes();
@@ -132,7 +134,11 @@ public class ClassHourServiceImpl implements ClassHourService {
 							}
 							classHour.setAcademicProgram(program);
 
-							responses.add(mapToResponseDTO(classHourRepo.save(classHour)));
+							ClassHour savedClassHour = classHourRepo.save(classHour);
+
+							classHours.add(savedClassHour);
+
+							responses.add(mapToClassHourResponse(savedClassHour));
 
 						}
 					}
@@ -142,6 +148,8 @@ public class ClassHourServiceImpl implements ClassHourService {
 			} else {
 				throw new ScheduleNotFoundInSchoolException("schedule not found !!!");
 			}
+			program.setClassHours(classHours);
+			academicProgramRepo.save(program);
 			responseStructure.setData(responses);
 			responseStructure.setMessage("Added Successfully !!!");
 			responseStructure.setStatus(HttpStatus.OK.value());
@@ -209,6 +217,18 @@ public class ClassHourServiceImpl implements ClassHourService {
 				}).orElseThrow(() -> new InvalidClassHourIdException("invalid ID"));
 			});
 		}
+		return new ResponseEntity<ResponseStructure<List<ClassHourResponseDTO>>>(responseStructure, HttpStatus.OK);
+	}
+
+	public ResponseEntity<ResponseStructure<List<ClassHourResponseDTO>>> deleteClassHour(List<ClassHour> classHours) {
+		ArrayList<ClassHourResponseDTO> aList = new ArrayList<>();
+		classHours.forEach(classHour -> {
+			classHourRepo.delete(classHour);
+			aList.add(mapToClassHourResponse(classHour));
+		});
+		responseStructure.setData(aList);
+		responseStructure.setMessage("deleted successfully");
+		responseStructure.setStatus(HttpStatus.ACCEPTED.value());
 		return new ResponseEntity<ResponseStructure<List<ClassHourResponseDTO>>>(responseStructure, HttpStatus.OK);
 	}
 }

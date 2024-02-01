@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -13,7 +14,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.school.sba.requestdto.AcademicProgramRequestDto;
 import com.school.sba.responnsedto.AcademicsProgramResponseDto;
-import com.school.sba.responnsedto.UserResponseDTO;
 import com.school.sba.service.AcademicProgramService;
 import com.school.sba.util.ResponseStructure;
 
@@ -41,9 +41,10 @@ public class AcademicProgramController {
 		return service.assignUser(programId, userId);
 	}
 
-	@GetMapping("/academic-programs/{programId}/user-roles/{role}/users")
-	public ResponseEntity<ResponseStructure<List<UserResponseDTO>>> fecthUsersByRole(
-			@PathVariable int programId, @PathVariable String role) {
-		return service.fecthUsersByRole(programId, role);
+	@DeleteMapping("/academic-programs/{programId}")
+	public ResponseEntity<ResponseStructure<AcademicsProgramResponseDto>> deleteAcademicProgram(
+			@PathVariable int programId) {
+		return service.deleteAcademicProgram(programId);
 	}
+
 }

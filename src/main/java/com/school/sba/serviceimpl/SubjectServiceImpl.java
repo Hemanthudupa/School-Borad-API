@@ -10,10 +10,12 @@ import org.springframework.stereotype.Service;
 
 import com.school.sba.entity.Subject;
 import com.school.sba.exceptions.AcademicProgramNotFoundByIdException;
+import com.school.sba.exceptions.SchoolNotFoundByIdException;
 import com.school.sba.repository.AcademicProgramRepo;
 import com.school.sba.repository.SubjectRepo;
 import com.school.sba.requestdto.SubjectRequestDTO;
 import com.school.sba.responnsedto.AcademicsProgramResponseDto;
+import com.school.sba.responnsedto.SchoolResponseDTO;
 import com.school.sba.responnsedto.SubjectResponseDTO;
 import com.school.sba.service.SubjectService;
 import com.school.sba.util.ResponseStructure;
@@ -46,8 +48,8 @@ public class SubjectServiceImpl implements SubjectService {
 			List<Subject> subjects = program.getSubjects();
 			subjectRequestDTO.getSubjectNames().forEach(name -> {
 				subjectRepo.findBySubjectName(name).map(subject -> {
-					if(subjects.contains(subject)==false)
-					subjects.add(subject);
+					if (subjects.contains(subject) == false)
+						subjects.add(subject);
 					return subject;
 				}).orElseGet(() -> {
 					Subject subject = new Subject();
@@ -110,6 +112,21 @@ public class SubjectServiceImpl implements SubjectService {
 		rs.setMessage("Subjects Fetched Succesfully");
 		rs.setStatus(HttpStatus.OK.value());
 		return new ResponseEntity<ResponseStructure<List<SubjectResponseDTO>>>(rs, HttpStatus.OK);
+	}
+
+	@Override
+	public ResponseEntity<ResponseStructure<SubjectResponseDTO>> delete(int id) {
+		return subjectRepo.findById(id).map(subject -> {
+			if (subject.isDeleted()) {
+				subject.setDeleted(true);
+				subjectRepo.save(subject);
+			}
+			ResponseStructure<SubjectResponseDTO> structure = new ResponseStructure<>();
+			structure.setData(mapToSubjectResponseDTO(subject));
+			structure.setMessage("deleted successfully !!!");
+			structure.setStatus(HttpStatus.OK.value());
+			return new ResponseEntity<ResponseStructure<SubjectResponseDTO>>(structure, HttpStatus.OK);
+		}).orElseThrow(() -> new SchoolNotFoundByIdException("Invalid school ID!!!!"));
 	}
 
 }

@@ -32,4 +32,6 @@ public class School {
 
 	@OneToMany(mappedBy = "school")
 	private List<AcademicProgram> academicProgram;
+
+	private boolean isDeleted;
 }

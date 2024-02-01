@@ -16,5 +16,6 @@ public class AcademicsProgramResponseDto {
 	private String programName;
 	private LocalTime beginsAt;
 	private LocalTime endsAt;
+	private boolean isDeleted;
 	private List<String> subjects;
 }

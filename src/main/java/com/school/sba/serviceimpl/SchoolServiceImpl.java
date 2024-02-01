@@ -5,14 +5,17 @@ import java.util.List;
 import org.hibernate.ObjectNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import com.school.sba.entity.School;
 import com.school.sba.enums.UserRole;
 import com.school.sba.exceptions.SchoolAlreadyPresentException;
+import com.school.sba.exceptions.SchoolNotFoundByIdException;
 import com.school.sba.exceptions.UnauthorizedAccessSchoolException;
 import com.school.sba.exceptions.UserNotFoundByIdException;
+import com.school.sba.repository.AcademicProgramRepo;
 import com.school.sba.repository.SchoolRepo;
 import com.school.sba.repository.UserRepo;
 import com.school.sba.requestdto.SchoolRequestDTO;
@@ -23,13 +26,16 @@ import com.school.sba.util.ResponseStructure;
 @Service
 public class SchoolServiceImpl implements School_Service {
 	@Autowired
-	SchoolRepo repo;
+	SchoolRepo schoolRepo;
 
 	@Autowired
 	UserRepo userRepo;
 
-	@Autowired	
+	@Autowired
 	ResponseStructure<SchoolResponseDTO> structure;
+
+	@Autowired
+	AcademicProgramRepo academicProgramRepo;
 
 	public School mapToSchool(SchoolRequestDTO requestDTO) {
 		return School.builder().address(requestDTO.getAddress()).schoolName(requestDTO.getSchoolName())
@@ -38,7 +44,8 @@ public class SchoolServiceImpl implements School_Service {
 
 	public SchoolResponseDTO mapToresponse(School school) {
 		return SchoolResponseDTO.builder().address(school.getAddress()).contactNo(school.getContactNo())
-				.emailId(school.getEmailId()).shoolName(school.getSchoolName()).schoolId(school.getSchoolId()).build();
+				.emailId(school.getEmailId()).shoolName(school.getSchoolName()).isDeleted(school.isDeleted())
+				.schoolId(school.getSchoolId()).build();
 
 	}
 
@@ -54,7 +61,7 @@ public class SchoolServiceImpl implements School_Service {
 			if (user.getUserRole().equals(UserRole.ADMIN)) {
 				if (user.getSchool() == null) {
 					School mapToSchool = mapToSchool(requestDTO);
-					School savedSchool = repo.save(mapToSchool);
+					School savedSchool = schoolRepo.save(mapToSchool);
 					structure.setData(mapToresponse(savedSchool));
 					user.setSchool(savedSchool);
 					userRepo.save(user);
@@ -71,27 +78,35 @@ public class SchoolServiceImpl implements School_Service {
 
 	}
 
-	public School update(School school) {
-		School orElseThrow = repo.findById(school.getSchoolId())
-				.orElseThrow(() -> new ObjectNotFoundException("Object", school));
-		orElseThrow.setAddress(school.getAddress());
-		orElseThrow.setEmailId(school.getEmailId());
-		orElseThrow.setContactNo(school.getContactNo());
-		orElseThrow.setSchoolName(school.getSchoolName());
-		return repo.save(orElseThrow);
+	@Override
+	public ResponseEntity<ResponseStructure<SchoolResponseDTO>> delete(int id) {
+		return schoolRepo.findById(id).map(school -> {
+			if (school.isDeleted()==false) {
+				school.setDeleted(true);
+				schoolRepo.save(school);
+			}
+
+			structure.setData(mapToresponse(school));
+			structure.setMessage("deleted successfully !!!");
+			structure.setStatus(HttpStatus.OK.value());
+			return new ResponseEntity<ResponseStructure<SchoolResponseDTO>>(structure, HttpStatus.OK);
+		}).orElseThrow(() -> new SchoolNotFoundByIdException("Invalid school ID!!!!"));
 	}
 
-	public String delete(int id) {
-		School deleteEntity = repo.findById(id).orElseThrow(() -> new ObjectNotFoundException("not found ", repo));
-		repo.delete(deleteEntity);
-		return "Object delete successfully ";
+	@Override
+	public void permanentDelete() {
+		schoolRepo.findByIsDeleted(true).forEach(school -> {
+			school.getAcademicProgram().forEach(program -> {
+				program.setSchool(null);
+				academicProgramRepo.save(program);
+			});
+			userRepo.findBySchool(school).forEach(user -> {
+				user.setSchool(null);
+				userRepo.save(user);
+			});
+
+			schoolRepo.delete(school);
+		});
 	}
 
-	public List<School> getAll() {
-		return repo.findAll();
-	}
-
-	public School getSchoolByID(int id) {
-		return repo.findById(id).orElseThrow(() -> new ObjectNotFoundException(repo, null));
-	}
 }

@@ -1,8 +1,11 @@
 package com.school.sba.serviceimpl;
 
+import java.util.ArrayList;
+import java.util.EnumSet;
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -10,15 +13,17 @@ import org.springframework.stereotype.Service;
 
 import com.school.sba.entity.User;
 import com.school.sba.enums.UserRole;
+import com.school.sba.exceptions.AcademicProgramNotFoundByIdException;
 import com.school.sba.exceptions.AdminCannotBeAddedToAcademicsProgramException;
 import com.school.sba.exceptions.ContraintsValidationException;
 import com.school.sba.exceptions.ExistingAdminException;
 import com.school.sba.exceptions.SchoolNotFound;
-import com.school.sba.exceptions.SchoolNotFoundByIdException;
 import com.school.sba.exceptions.SubjectNotFoundExceptionByID;
 import com.school.sba.exceptions.SubjectsOnlyAddedToTeacherException;
 import com.school.sba.exceptions.UserIsNotAnAdminException;
 import com.school.sba.exceptions.UserNotFoundByIdException;
+import com.school.sba.exceptions.UsersNotFoundInAcademicProgramException;
+import com.school.sba.repository.AcademicProgramRepo;
 import com.school.sba.repository.SubjectRepo;
 import com.school.sba.repository.UserRepo;
 import com.school.sba.requestdto.UserRequestDTO;
@@ -39,6 +44,9 @@ public class UserServiceImpl implements User_Service {
 
 	@Autowired
 	private PasswordEncoder passwordEncoder;
+
+	@Autowired
+	private AcademicProgramRepo academicProgramRepo;
 
 	private User mapToUser(UserRequestDTO request) {
 
@@ -180,4 +188,39 @@ public class UserServiceImpl implements User_Service {
 		}).orElseThrow(() -> new UserIsNotAnAdminException("admin required!!!"));
 
 	}
+
+	@Override
+	public ResponseEntity<ResponseStructure<List<UserResponseDTO>>> fecthUsersByRole(int programId, String role) {
+		ArrayList<UserResponseDTO> alist = new ArrayList<>();
+		academicProgramRepo.findById(programId).map(program -> {
+			if (program.getUsers() != null) {
+				program.getUsers().forEach(user -> {
+					if (!role.equalsIgnoreCase("admin")) {
+
+						EnumSet<UserRole> enumSet = EnumSet.allOf(UserRole.class);
+
+						if (enumSet.contains(UserRole.valueOf(role.toUpperCase()))) {
+							alist.add(mapToUserResponse(user));
+						} else {
+							throw new UsersNotFoundInAcademicProgramException(role + " is not found in the academics ");
+						}
+					} else {
+						throw new AdminCannotBeAddedToAcademicsProgramException(
+								"admin cannot able present in the acadamics ");
+					}
+				});
+			} else {
+				throw new UsersNotFoundInAcademicProgramException("users not present in Academic program");
+			}
+			return alist;
+		}).orElseThrow(() -> new AcademicProgramNotFoundByIdException("Invalid program ID !!"));
+		ResponseStructure<List<UserResponseDTO>> structure = new ResponseStructure<>();
+
+		structure.setData(alist);
+		structure.setMessage("users fecthed successfully ");
+		structure.setStatus(HttpStatus.OK.value());
+
+		return new ResponseEntity<ResponseStructure<List<UserResponseDTO>>>(structure, HttpStatus.OK);
+	}
+
 }
