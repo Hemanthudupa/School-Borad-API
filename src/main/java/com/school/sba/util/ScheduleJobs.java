@@ -9,6 +9,7 @@ import com.school.sba.repository.ClassHourRepo;
 import com.school.sba.repository.SchoolRepo;
 import com.school.sba.repository.UserRepo;
 import com.school.sba.service.AcademicProgramService;
+import com.school.sba.service.ClassHourService;
 import com.school.sba.service.School_Service;
 
 import jakarta.transaction.Transactional;
@@ -33,7 +34,10 @@ public class ScheduleJobs {
 
 	@Autowired
 	private School_Service school_Service;
-	
+
+	@Autowired
+	private ClassHourService classHourService;
+
 //	@Scheduled(fixedDelay = 1000L * 60)
 //	@Transactional
 //	public void deleteFromUser() {
@@ -55,13 +59,19 @@ public class ScheduleJobs {
 //	public void deleteFromAcademicProgram() {
 //		academicProgramService.permanentDeleteAP();
 //	}
-	
+
 	@Transactional
-	@Scheduled(fixedDelay = 1000*60L)
-	public void deleteFromSchool()
-	{
+	@Scheduled(fixedDelay = 1000 * 60L)
+	public void deleteFromSchool() {
 		school_Service.permanentDelete();
-		
+
 	}
 
+	@Transactional
+	@Scheduled(cron = "0 0 0 * * MON")
+	public void generateClassHoursAuto() {
+		System.out.println(" hello ");
+
+		classHourService.generateClassHourForNextWeek(12);
+	}
 }

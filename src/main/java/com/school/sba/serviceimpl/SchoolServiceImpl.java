@@ -39,13 +39,14 @@ public class SchoolServiceImpl implements School_Service {
 
 	public School mapToSchool(SchoolRequestDTO requestDTO) {
 		return School.builder().address(requestDTO.getAddress()).schoolName(requestDTO.getSchoolName())
-				.contactNo(requestDTO.getContactNo()).emailId(requestDTO.getEmailId()).build();
+				.contactNo(requestDTO.getContactNo()).emailId(requestDTO.getEmailId())
+				.holidayOfTheWeek(requestDTO.getDayOfWeek()).build();
 	}
 
 	public SchoolResponseDTO mapToresponse(School school) {
 		return SchoolResponseDTO.builder().address(school.getAddress()).contactNo(school.getContactNo())
 				.emailId(school.getEmailId()).shoolName(school.getSchoolName()).isDeleted(school.isDeleted())
-				.schoolId(school.getSchoolId()).build();
+				.dayOfWeek(school.getHolidayOfTheWeek()).schoolId(school.getSchoolId()).build();
 
 	}
 
@@ -81,7 +82,7 @@ public class SchoolServiceImpl implements School_Service {
 	@Override
 	public ResponseEntity<ResponseStructure<SchoolResponseDTO>> delete(int id) {
 		return schoolRepo.findById(id).map(school -> {
-			if (school.isDeleted()==false) {
+			if (school.isDeleted() == false) {
 				school.setDeleted(true);
 				schoolRepo.save(school);
 			}

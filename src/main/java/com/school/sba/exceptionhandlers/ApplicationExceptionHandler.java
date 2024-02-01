@@ -30,6 +30,7 @@ import com.school.sba.exceptions.ScheduleNotFoundByIDException;
 import com.school.sba.exceptions.ScheduleNotFoundInSchoolException;
 import com.school.sba.exceptions.ScheduledAlreadyPresentException;
 import com.school.sba.exceptions.SchoolAlreadyPresentException;
+import com.school.sba.exceptions.SchoolNotAddedToAcademicProgramException;
 import com.school.sba.exceptions.SchoolNotFound;
 import com.school.sba.exceptions.SchoolNotFoundByIdException;
 import com.school.sba.exceptions.SubjectNotFoundExceptionByID;
@@ -176,5 +177,9 @@ public class ApplicationExceptionHandler extends ResponseEntityExceptionHandler 
 	@ExceptionHandler(DuplicateClassHoursException.class)
 	public ResponseEntity<Object> duplicateClassHoursException(DuplicateClassHoursException ex) {
 		return structre(HttpStatus.BAD_REQUEST, ex.getMessage(), "class hours are already present !!!!!!!!!");
+	}
+	@ExceptionHandler(SchoolNotAddedToAcademicProgramException.class)
+	public ResponseEntity<Object> schoolNotAddedToAcademicProgramException(SchoolNotAddedToAcademicProgramException ex) {
+		return structre(HttpStatus.BAD_REQUEST, ex.getMessage(), "school not yet added to the academic program please add to school to access !!!!!!!!!");
 	}
 }

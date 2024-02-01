@@ -29,6 +29,4 @@ public class Schedule {
 	private Duration breakLength;
 	private LocalTime lunchTime;
 	private Duration lunchLength;
-	
-	
 }
