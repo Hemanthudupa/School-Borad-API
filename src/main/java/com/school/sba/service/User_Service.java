@@ -1,5 +1,7 @@
 package com.school.sba.service;
 
+import java.util.List;
+
 import org.springframework.http.ResponseEntity;
 
 import com.school.sba.requestdto.UserRequestDTO;
@@ -17,4 +19,6 @@ public interface User_Service {
 	ResponseEntity<ResponseStructure<UserResponseDTO>> addSubject(int subjectId, int userId);
 
 	ResponseEntity<ResponseStructure<UserResponseDTO>> addOtherUsers(UserRequestDTO user);
+	ResponseEntity<ResponseStructure<List<UserResponseDTO>>> fecthUsersByRole(int programId, String role);
+
 }

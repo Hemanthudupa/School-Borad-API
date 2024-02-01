@@ -23,5 +23,5 @@ public class Subject {
 	private int subjectId;
 	@Column(unique = true)
 	private String subjectName;
-
+	private boolean isDeleted;
 }

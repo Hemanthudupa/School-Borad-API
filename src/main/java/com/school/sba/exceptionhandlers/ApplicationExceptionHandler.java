@@ -21,6 +21,7 @@ import com.school.sba.exceptions.AcademicsProgramIsNotPresentException;
 import com.school.sba.exceptions.AdminCannotBeAddedToAcademicsProgramException;
 import com.school.sba.exceptions.ClassRoomNotFreeException;
 import com.school.sba.exceptions.ContraintsValidationException;
+import com.school.sba.exceptions.DuplicateClassHoursException;
 import com.school.sba.exceptions.ExistingAdminException;
 import com.school.sba.exceptions.InvalidClassHourIdException;
 import com.school.sba.exceptions.InvalidUserRoleException;
@@ -29,6 +30,7 @@ import com.school.sba.exceptions.ScheduleNotFoundByIDException;
 import com.school.sba.exceptions.ScheduleNotFoundInSchoolException;
 import com.school.sba.exceptions.ScheduledAlreadyPresentException;
 import com.school.sba.exceptions.SchoolAlreadyPresentException;
+import com.school.sba.exceptions.SchoolNotAddedToAcademicProgramException;
 import com.school.sba.exceptions.SchoolNotFound;
 import com.school.sba.exceptions.SchoolNotFoundByIdException;
 import com.school.sba.exceptions.SubjectNotFoundExceptionByID;
@@ -36,6 +38,7 @@ import com.school.sba.exceptions.SubjectsOnlyAddedToTeacherException;
 import com.school.sba.exceptions.UnauthorizedAccessSchoolException;
 import com.school.sba.exceptions.UserIsNotAnAdminException;
 import com.school.sba.exceptions.UserNotFoundByIdException;
+import com.school.sba.exceptions.UsersNotFoundInAcademicProgramException;
 
 @RestControllerAdvice
 public class ApplicationExceptionHandler extends ResponseEntityExceptionHandler {
@@ -164,5 +167,19 @@ public class ApplicationExceptionHandler extends ResponseEntityExceptionHandler 
 	public ResponseEntity<Object> classRoomNotFoundException(ClassRoomNotFreeException ex) {
 		return structre(HttpStatus.BAD_REQUEST, ex.getMessage(),
 				"invalid class room becuase class is not free at this time  !!!!");
+	}
+
+	@ExceptionHandler(UsersNotFoundInAcademicProgramException.class)
+	public ResponseEntity<Object> classRoomNotFoundException(UsersNotFoundInAcademicProgramException ex) {
+		return structre(HttpStatus.BAD_REQUEST, ex.getMessage(), "users not available in the academic program   !!!!");
+	}
+
+	@ExceptionHandler(DuplicateClassHoursException.class)
+	public ResponseEntity<Object> duplicateClassHoursException(DuplicateClassHoursException ex) {
+		return structre(HttpStatus.BAD_REQUEST, ex.getMessage(), "class hours are already present !!!!!!!!!");
+	}
+	@ExceptionHandler(SchoolNotAddedToAcademicProgramException.class)
+	public ResponseEntity<Object> schoolNotAddedToAcademicProgramException(SchoolNotAddedToAcademicProgramException ex) {
+		return structre(HttpStatus.BAD_REQUEST, ex.getMessage(), "school not yet added to the academic program please add to school to access !!!!!!!!!");
 	}
 }

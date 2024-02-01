@@ -1,9 +1,12 @@
 package com.school.sba.entity;
 
+import java.time.DayOfWeek;
 import java.util.List;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -30,6 +33,11 @@ public class School {
 	@OneToOne(cascade = CascadeType.ALL)
 	private Schedule schedule;
 
+	@Enumerated(EnumType.STRING)
+	private DayOfWeek holidayOfTheWeek;
+
 	@OneToMany(mappedBy = "school")
 	private List<AcademicProgram> academicProgram;
+
+	private boolean isDeleted;
 }

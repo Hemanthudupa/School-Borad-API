@@ -17,4 +17,9 @@ public interface AcademicProgramService {
 
 	ResponseEntity<ResponseStructure<AcademicsProgramResponseDto>> assignUser(int programId, int userId);
 
+	ResponseEntity<ResponseStructure<AcademicsProgramResponseDto>> deleteAcademicProgram(int programId);
+
+	void permanentDeleteAP();
+
+
 }

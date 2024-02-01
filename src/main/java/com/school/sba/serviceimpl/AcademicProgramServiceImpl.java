@@ -18,6 +18,7 @@ import com.school.sba.exceptions.NoSubjectFoundInAcademinException;
 import com.school.sba.exceptions.SchoolNotFoundByIdException;
 import com.school.sba.exceptions.UserNotFoundByIdException;
 import com.school.sba.repository.AcademicProgramRepo;
+import com.school.sba.repository.ClassHourRepo;
 import com.school.sba.repository.SchoolRepo;
 import com.school.sba.repository.UserRepo;
 import com.school.sba.requestdto.AcademicProgramRequestDto;
@@ -36,6 +37,9 @@ public class AcademicProgramServiceImpl implements AcademicProgramService {
 
 	@Autowired
 	private UserRepo userRepo;
+
+	@Autowired
+	private ClassHourRepo classHourRepo;
 
 	@Autowired
 	private ResponseStructure<AcademicsProgramResponseDto> structure;
@@ -58,7 +62,7 @@ public class AcademicProgramServiceImpl implements AcademicProgramService {
 		return AcademicsProgramResponseDto.builder().programId(academicProgram.getProgramId())
 				.beginsAt(academicProgram.getBeginsAt()).endsAt(academicProgram.getEndsAt())
 				.programName(academicProgram.getProgramName()).programType(academicProgram.getProgramType())
-				.subjects(names).build();
+				.subjects(names).isDeleted(academicProgram.isDeleted()).build();
 	}
 
 	@Override
@@ -127,6 +131,27 @@ public class AcademicProgramServiceImpl implements AcademicProgramService {
 			return new ResponseEntity<ResponseStructure<AcademicsProgramResponseDto>>(structure, HttpStatus.OK);
 
 		}).orElseThrow(() -> new UserNotFoundByIdException("invalid user ID !!!"));
+	}
+
+	@Override
+	public ResponseEntity<ResponseStructure<AcademicsProgramResponseDto>> deleteAcademicProgram(int programId) {
+		return academicProgramRepo.findById(programId).map(program -> {
+			if (!program.isDeleted()) {
+				program.setDeleted(true);
+				academicProgramRepo.save(program);
+			}
+			structure.setData(mapToAcademicsProgramResponseDto(program));
+			structure.setMessage("academic program delete successfully");
+			structure.setStatus(HttpStatus.CONTINUE.value());
+			return new ResponseEntity<ResponseStructure<AcademicsProgramResponseDto>>(structure, HttpStatus.OK);
+		}).orElseThrow(() -> new AcademicProgramNotFoundByIdException("invalid ID!!!"));
+	}
+
+	@Override
+	public void permanentDeleteAP() {
+		List<AcademicProgram> programs = academicProgramRepo.findAllByIsDeleted(true);
+		programs.forEach(program -> classHourRepo.deleteAll(program.getClassHours()));
+		academicProgramRepo.deleteAll(programs);
 	}
 
 }

@@ -5,6 +5,7 @@ import java.time.LocalTime;
 
 import com.school.sba.enums.ClassStatus;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -28,7 +29,7 @@ public class ClassHour {
 	private LocalDateTime beginsAtLocalTime;
 	private LocalDateTime endsALocalTime;
 	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@GeneratedValue(strategy = GenerationType.TABLE)
 	private int classHourID;
 	private int roomNo;
 	@Enumerated(EnumType.STRING)
@@ -39,6 +40,6 @@ public class ClassHour {
 	@ManyToOne
 	private AcademicProgram academicProgram;
 
-	@ManyToOne
+	@ManyToOne(optional = true)
 	private User user;
 }

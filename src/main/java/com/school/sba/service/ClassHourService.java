@@ -13,6 +13,9 @@ public interface ClassHourService {
 
 	ResponseEntity<ResponseStructure<List<ClassHourResponseDTO>>> generateClassHour(int programId);
 
-	ResponseEntity<ResponseStructure<List<ClassHourResponseDTO>>> updateClassHour(ArrayList<ClassHourRequestDTO> classHours);
+	ResponseEntity<ResponseStructure<List<ClassHourResponseDTO>>> updateClassHour(
+			ArrayList<ClassHourRequestDTO> classHours);
+
+	ResponseEntity<ResponseStructure<List<ClassHourResponseDTO>>> generateClassHourForNextWeek(int programId);
 
 }
