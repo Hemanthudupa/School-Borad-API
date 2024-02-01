@@ -21,6 +21,7 @@ import com.school.sba.exceptions.AcademicsProgramIsNotPresentException;
 import com.school.sba.exceptions.AdminCannotBeAddedToAcademicsProgramException;
 import com.school.sba.exceptions.ClassRoomNotFreeException;
 import com.school.sba.exceptions.ContraintsValidationException;
+import com.school.sba.exceptions.DuplicateClassHoursException;
 import com.school.sba.exceptions.ExistingAdminException;
 import com.school.sba.exceptions.InvalidClassHourIdException;
 import com.school.sba.exceptions.InvalidUserRoleException;
@@ -166,10 +167,14 @@ public class ApplicationExceptionHandler extends ResponseEntityExceptionHandler 
 		return structre(HttpStatus.BAD_REQUEST, ex.getMessage(),
 				"invalid class room becuase class is not free at this time  !!!!");
 	}
-	
+
 	@ExceptionHandler(UsersNotFoundInAcademicProgramException.class)
 	public ResponseEntity<Object> classRoomNotFoundException(UsersNotFoundInAcademicProgramException ex) {
-		return structre(HttpStatus.BAD_REQUEST, ex.getMessage(),
-				"users not available in the academic program   !!!!");
+		return structre(HttpStatus.BAD_REQUEST, ex.getMessage(), "users not available in the academic program   !!!!");
+	}
+
+	@ExceptionHandler(DuplicateClassHoursException.class)
+	public ResponseEntity<Object> duplicateClassHoursException(DuplicateClassHoursException ex) {
+		return structre(HttpStatus.BAD_REQUEST, ex.getMessage(), "class hours are already present !!!!!!!!!");
 	}
 }

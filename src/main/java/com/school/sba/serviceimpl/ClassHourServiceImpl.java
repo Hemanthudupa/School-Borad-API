@@ -15,6 +15,7 @@ import com.school.sba.entity.Schedule;
 import com.school.sba.enums.ClassStatus;
 import com.school.sba.exceptions.AcademicProgramNotFoundByIdException;
 import com.school.sba.exceptions.ClassRoomNotFreeException;
+import com.school.sba.exceptions.DuplicateClassHoursException;
 import com.school.sba.exceptions.InvalidClassHourIdException;
 import com.school.sba.exceptions.InvalidUserRoleException;
 import com.school.sba.exceptions.ScheduleNotFoundInSchoolException;
@@ -55,6 +56,13 @@ public class ClassHourServiceImpl implements ClassHourService {
 
 	}
 
+	public ClassHour mapToClassHour(ClassHour classHour) {
+		return ClassHour.builder().academicProgram(classHour.getAcademicProgram())
+				.beginsAtLocalTime(classHour.getBeginsAtLocalTime().plusDays(6)).classStatus(classHour.getClassStatus())
+				.endsALocalTime(classHour.getEndsALocalTime().plusDays(6)).roomNo(classHour.getRoomNo())
+				.subject(classHour.getSubject()).user(classHour.getUser()).build();
+	}
+
 	public boolean isLunchTime(LocalDateTime currentTime, Schedule schedule) {
 		LocalTime lunchTimeStart = schedule.getLunchTime();
 		LocalTime lunchTimeEnd = lunchTimeStart.plusMinutes(schedule.getLunchLength().toMinutes());
@@ -83,71 +91,76 @@ public class ClassHourServiceImpl implements ClassHourService {
 			List<ClassHourResponseDTO> responses = new ArrayList<>();
 
 			List<ClassHour> classHours = new ArrayList<>();
+			if (program.getClassHours().isEmpty()) {
+				if (schedule != null) {
+					long classHoursInMinutes = schedule.getClassHourLength().toMinutes();
+					int classHoursPerDay = schedule.getClassHoursPerDay();
 
-			if (schedule != null) {
-				long classHoursInMinutes = schedule.getClassHourLength().toMinutes();
-				int classHoursPerDay = schedule.getClassHoursPerDay();
+					LocalTime closesAt = schedule.getClosesAt();
 
-				LocalTime closesAt = schedule.getClosesAt();
+					LocalDateTime currentTime = LocalDateTime.now().with(schedule.getOpensAt());
 
-				LocalDateTime currentTime = LocalDateTime.now().with(schedule.getOpensAt());
+					LocalTime lunchTimeStart = schedule.getLunchTime();
+					LocalTime lunchTimeEnd = lunchTimeStart.plusMinutes(schedule.getLunchLength().toMinutes());
 
-				LocalTime lunchTimeStart = schedule.getLunchTime();
-				LocalTime lunchTimeEnd = lunchTimeStart.plusMinutes(schedule.getLunchLength().toMinutes());
+					LocalTime breakTimestart = schedule.getBreakTime();
 
-				LocalTime breakTimestart = schedule.getBreakTime();
+					LocalTime breakTimeEnd = breakTimestart.plusMinutes(schedule.getBreakLength().toMinutes());
 
-				LocalTime breakTimeEnd = breakTimestart.plusMinutes(schedule.getBreakLength().toMinutes());
+					for (int day = 1; day <= 6; day++) {
+						for (int hour = 0; hour <= classHoursPerDay + 2; hour++) {
+							ClassHour classHour = new ClassHour();
+							if (currentTime.toLocalTime().isBefore(closesAt)
+									&& !currentTime.toLocalTime().equals(closesAt)) {
+								LocalDateTime beginsAt = currentTime;
+								LocalDateTime endsAt = currentTime.plusMinutes(classHoursInMinutes);
 
-				for (int day = 1; day <= 6; day++) {
-					for (int hour = 0; hour <= classHoursPerDay + 2; hour++) {
-						ClassHour classHour = new ClassHour();
-						if (currentTime.toLocalTime().isBefore(closesAt)
-								&& !currentTime.toLocalTime().equals(closesAt)) {
-							LocalDateTime beginsAt = currentTime;
-							LocalDateTime endsAt = currentTime.plusMinutes(classHoursInMinutes);
+								if (!currentTime.toLocalTime().equals(lunchTimeStart)
+										&& !isLunchTime(currentTime, schedule)) {
+									if (!currentTime.toLocalTime().equals(breakTimestart)
+											&& !isBreakTime(currentTime, schedule)) {
+										classHour.setBeginsAtLocalTime(beginsAt);
+										classHour.setEndsALocalTime(endsAt);
+										classHour.setClassStatus(ClassStatus.NOT_SCHEDULED);
 
-							if (!currentTime.toLocalTime().equals(lunchTimeStart)
-									&& !isLunchTime(currentTime, schedule)) {
-								if (!currentTime.toLocalTime().equals(breakTimestart)
-										&& !isBreakTime(currentTime, schedule)) {
-									classHour.setBeginsAtLocalTime(beginsAt);
-									classHour.setEndsALocalTime(endsAt);
-									classHour.setClassStatus(ClassStatus.NOT_SCHEDULED);
+										currentTime = endsAt;
 
-									currentTime = endsAt;
+									} else {
+										classHour
+												.setBeginsAtLocalTime(breakTimestart.atDate(currentTime.toLocalDate()));
+										classHour.setEndsALocalTime(breakTimeEnd.atDate(currentTime.toLocalDate()));
+										currentTime = breakTimeEnd.atDate(currentTime.toLocalDate());
 
+										classHour.setClassStatus(ClassStatus.BREAK_TIME);
+
+									}
 								} else {
-									classHour.setBeginsAtLocalTime(breakTimestart.atDate(currentTime.toLocalDate()));
-									classHour.setEndsALocalTime(breakTimeEnd.atDate(currentTime.toLocalDate()));
-									currentTime = breakTimeEnd.atDate(currentTime.toLocalDate());
+									classHour.setBeginsAtLocalTime(lunchTimeStart.atDate(currentTime.toLocalDate()));
+									classHour.setEndsALocalTime(lunchTimeEnd.atDate(currentTime.toLocalDate()));
+									currentTime = lunchTimeEnd.atDate(currentTime.toLocalDate());
 
-									classHour.setClassStatus(ClassStatus.BREAK_TIME);
-
+									classHour.setClassStatus(ClassStatus.LUNCH_TIME);
 								}
-							} else {
-								classHour.setBeginsAtLocalTime(lunchTimeStart.atDate(currentTime.toLocalDate()));
-								classHour.setEndsALocalTime(lunchTimeEnd.atDate(currentTime.toLocalDate()));
-								currentTime = lunchTimeEnd.atDate(currentTime.toLocalDate());
+								classHour.setAcademicProgram(program);
 
-								classHour.setClassStatus(ClassStatus.LUNCH_TIME);
+								ClassHour savedClassHour = classHourRepo.save(classHour);
+
+								classHours.add(savedClassHour);
+
+								responses.add(mapToClassHourResponse(savedClassHour));
+
 							}
-							classHour.setAcademicProgram(program);
-
-							ClassHour savedClassHour = classHourRepo.save(classHour);
-
-							classHours.add(savedClassHour);
-
-							responses.add(mapToClassHourResponse(savedClassHour));
-
 						}
-					}
-					currentTime = currentTime.plusDays(1).with(schedule.getOpensAt());
+						currentTime = currentTime.plusDays(1).with(schedule.getOpensAt());
 
+					}
+				} else {
+					throw new ScheduleNotFoundInSchoolException("schedule not found !!!");
 				}
 			} else {
-				throw new ScheduleNotFoundInSchoolException("schedule not found !!!");
+				throw new DuplicateClassHoursException(" class hours already present !!!");
 			}
+
 			program.setClassHours(classHours);
 			academicProgramRepo.save(program);
 			responseStructure.setData(responses);
@@ -230,5 +243,33 @@ public class ClassHourServiceImpl implements ClassHourService {
 		responseStructure.setMessage("deleted successfully");
 		responseStructure.setStatus(HttpStatus.ACCEPTED.value());
 		return new ResponseEntity<ResponseStructure<List<ClassHourResponseDTO>>>(responseStructure, HttpStatus.OK);
+	}
+
+	@Override
+	public ResponseEntity<ResponseStructure<List<ClassHourResponseDTO>>> generateClassHourForNextWeek(int programId) {
+		academicProgramRepo.findById(programId).map(program -> {
+			LocalDateTime endsALocalTime = program.getClassHours().getLast().getEndsALocalTime();
+
+			LocalDateTime minusDays = endsALocalTime.minusDays(5).minusHours(8).minusMinutes(30);
+			LocalDateTime minusDays2 = endsALocalTime;
+			System.out.println(minusDays + " " + minusDays2);
+
+			List<ClassHour> findByEndsALocalTimeBetween = classHourRepo.findByEndsALocalTimeBetween(minusDays,
+					minusDays2);
+
+			ArrayList<ClassHourResponseDTO> alist = new ArrayList<>();
+
+			findByEndsALocalTimeBetween.forEach(find -> {
+				alist.add(mapToClassHourResponse(classHourRepo.save(mapToClassHour(find))));
+			});
+			responseStructure.setData(alist);
+			responseStructure.setMessage("next week data classhour !!!");
+			responseStructure.setStatus(HttpStatus.CREATED.value());
+			return new ResponseEntity<ResponseStructure<List<ClassHourResponseDTO>>>(responseStructure,
+					HttpStatus.CREATED);
+
+		});
+		return new ResponseEntity<ResponseStructure<List<ClassHourResponseDTO>>>(responseStructure, HttpStatus.CREATED);
+
 	}
 }

@@ -1,5 +1,6 @@
 package com.school.sba.responnsedto;
 
+import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
 
@@ -14,8 +15,8 @@ public class AcademicsProgramResponseDto {
 	private int programId;
 	private ProgramType programType;
 	private String programName;
-	private LocalTime beginsAt;
-	private LocalTime endsAt;
+	private LocalDate beginsAt;
+	private LocalDate endsAt;
 	private boolean isDeleted;
 	private List<String> subjects;
 }

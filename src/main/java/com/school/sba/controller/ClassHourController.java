@@ -33,4 +33,11 @@ public class ClassHourController {
 			@RequestBody ArrayList<ClassHourRequestDTO> classHours) {
 		return service.updateClassHour(classHours);
 	}
+
+	@PostMapping("/academic-program/{programId}")
+	public ResponseEntity<ResponseStructure<List<ClassHourResponseDTO>>> generateClassHourForNextWeek(
+			@PathVariable int programId) {
+		System.out.println("enterd ");
+		return service.generateClassHourForNextWeek(programId);
+	}
 }

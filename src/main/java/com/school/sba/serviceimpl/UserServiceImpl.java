@@ -176,6 +176,8 @@ public class UserServiceImpl implements User_Service {
 					User mapToUser = mapToUser(requestDTO);
 					mapToUser.setSchool(user.getSchool());
 
+					userRepo.save(mapToUser);
+
 					structure.setData(mapToUserResponse(userRepo.save(mapToUser)));
 					structure.setMessage("school added to this user !!!");
 					structure.setStatus(HttpStatus.CREATED.value());

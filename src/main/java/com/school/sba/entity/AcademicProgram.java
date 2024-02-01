@@ -1,5 +1,6 @@
 package com.school.sba.entity;
 
+import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
 
@@ -35,8 +36,8 @@ public class AcademicProgram {
 	@Enumerated(EnumType.STRING)
 	private ProgramType programType;
 	private String programName;
-	private LocalTime beginsAt;
-	private LocalTime endsAt;
+	private LocalDate beginsAt;
+	private LocalDate endsAt;
 	@ManyToOne
 	private School school;
 
