@@ -19,15 +19,20 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 import com.school.sba.exceptions.AcademicProgramNotFoundByIdException;
 import com.school.sba.exceptions.AcademicsProgramIsNotPresentException;
 import com.school.sba.exceptions.AdminCannotBeAddedToAcademicsProgramException;
+import com.school.sba.exceptions.ClassHoursNotPresentException;
 import com.school.sba.exceptions.ClassRoomNotFreeException;
 import com.school.sba.exceptions.ContraintsValidationException;
 import com.school.sba.exceptions.DuplicateClassHoursException;
 import com.school.sba.exceptions.ExistingAdminException;
+import com.school.sba.exceptions.InvalidBreakTimeInputException;
 import com.school.sba.exceptions.InvalidClassHourIdException;
+import com.school.sba.exceptions.InvalidClassHoursPerDayInputException;
+import com.school.sba.exceptions.InvalidLunchTimeInputException;
 import com.school.sba.exceptions.InvalidUserRoleException;
 import com.school.sba.exceptions.NoSubjectFoundInAcademinException;
 import com.school.sba.exceptions.ScheduleNotFoundByIDException;
 import com.school.sba.exceptions.ScheduleNotFoundInSchoolException;
+import com.school.sba.exceptions.ScheduleNotProperlyCreatedException;
 import com.school.sba.exceptions.ScheduledAlreadyPresentException;
 import com.school.sba.exceptions.SchoolAlreadyPresentException;
 import com.school.sba.exceptions.SchoolNotAddedToAcademicProgramException;
@@ -178,8 +183,42 @@ public class ApplicationExceptionHandler extends ResponseEntityExceptionHandler 
 	public ResponseEntity<Object> duplicateClassHoursException(DuplicateClassHoursException ex) {
 		return structre(HttpStatus.BAD_REQUEST, ex.getMessage(), "class hours are already present !!!!!!!!!");
 	}
+
 	@ExceptionHandler(SchoolNotAddedToAcademicProgramException.class)
-	public ResponseEntity<Object> schoolNotAddedToAcademicProgramException(SchoolNotAddedToAcademicProgramException ex) {
-		return structre(HttpStatus.BAD_REQUEST, ex.getMessage(), "school not yet added to the academic program please add to school to access !!!!!!!!!");
+	public ResponseEntity<Object> schoolNotAddedToAcademicProgramException(
+			SchoolNotAddedToAcademicProgramException ex) {
+		return structre(HttpStatus.BAD_REQUEST, ex.getMessage(),
+				"school not yet added to the academic program please add to school to access !!!!!!!!!");
 	}
+
+	@ExceptionHandler(ClassHoursNotPresentException.class)
+	public ResponseEntity<Object> classHoursNotPresentException(ClassHoursNotPresentException ex) {
+		return structre(HttpStatus.BAD_REQUEST, ex.getMessage(),
+				"class hours are not presnt in the DB to update the next week class hours ,so provide the class hours first and next hit this endpoint !!!!!!!!!");
+	}
+
+	@ExceptionHandler(InvalidClassHoursPerDayInputException.class)
+	public ResponseEntity<Object> invalidClassHoursPerDayInputException(InvalidClassHoursPerDayInputException ex) {
+		return structre(HttpStatus.BAD_REQUEST, ex.getMessage(),
+				"provided ClassHours Time is Higher than or lower than the OpensAt and ClosesAt Time of the school , so provide valid class Hours  !!!!!!!!!");
+	}
+
+	@ExceptionHandler(ScheduleNotProperlyCreatedException.class)
+	public ResponseEntity<Object> scheduleNotProperlyCreatedException(ScheduleNotProperlyCreatedException ex) {
+		return structre(HttpStatus.BAD_REQUEST, ex.getMessage(),
+				"  invalid Schedule details please provide the valid schedule details  !!!!!!!!!");
+	}
+
+	@ExceptionHandler(InvalidBreakTimeInputException.class)
+	public ResponseEntity<Object> invalidBreakTimeInputException(InvalidBreakTimeInputException ex) {
+		return structre(HttpStatus.BAD_REQUEST, ex.getMessage(),
+				"   invalid Break becuase there should be some confits in future    !!!!!!!!!");
+	}
+
+	@ExceptionHandler(InvalidLunchTimeInputException.class)
+	public ResponseEntity<Object> invalidLunchTimeInputException(InvalidLunchTimeInputException ex) {
+		return structre(HttpStatus.BAD_REQUEST, ex.getMessage(),
+				"  invalid lunchtime timing becuase there should be some confits in future  !!!!!!!!!");
+	}
+
 }
