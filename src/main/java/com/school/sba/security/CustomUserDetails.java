@@ -10,7 +10,6 @@ import org.springframework.security.core.userdetails.UserDetails;
 import com.school.sba.entity.User;
 
 public class CustomUserDetails implements UserDetails {
-
 	private User user;
 
 	public CustomUserDetails(User user) {

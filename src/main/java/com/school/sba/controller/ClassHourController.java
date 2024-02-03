@@ -35,9 +35,7 @@ public class ClassHourController {
 	}
 
 	@PostMapping("/academic-program/{programId}")
-	public ResponseEntity<ResponseStructure<List<ClassHourResponseDTO>>> generateClassHourForNextWeek(
-			@PathVariable int programId) {
-		System.out.println("enterd ");
-		return service.generateClassHourForNextWeek(programId);
+	public void generateClassHourForNextWeek(@PathVariable int programId) {
+		service.generateClassHourForNextWeek(programId);
 	}
 }

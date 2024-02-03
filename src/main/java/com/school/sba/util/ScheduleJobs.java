@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
+import com.school.sba.exceptions.ClassHoursNotPresentException;
 import com.school.sba.repository.AcademicProgramRepo;
 import com.school.sba.repository.ClassHourRepo;
 import com.school.sba.repository.SchoolRepo;
@@ -66,12 +67,17 @@ public class ScheduleJobs {
 		school_Service.permanentDelete();
 
 	}
-
-	@Transactional
-	@Scheduled(cron = "0 0 0 * * MON")
-	public void generateClassHoursAuto() {
-		System.out.println(" hello ");
-
-		classHourService.generateClassHourForNextWeek(12);
-	}
+//
+//	@Transactional
+//	@Scheduled(cron = "0 * * * * *")
+//	public void generateClassHoursAuto() {
+//
+//		academicProgramRepo.findAll().forEach(program -> {
+//			try {
+//				classHourService.generateClassHourForNextWeek(program.getProgramId());
+//			} catch (ClassHoursNotPresentException e) {
+//				System.err.println(e.getMessage());
+//			}
+//		});
+//	}
 }

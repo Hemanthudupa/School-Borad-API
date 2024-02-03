@@ -2,6 +2,7 @@ package com.school.sba.serviceimpl;
 
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -15,6 +16,7 @@ import com.school.sba.entity.Schedule;
 import com.school.sba.entity.School;
 import com.school.sba.enums.ClassStatus;
 import com.school.sba.exceptions.AcademicProgramNotFoundByIdException;
+import com.school.sba.exceptions.ClassHoursNotPresentException;
 import com.school.sba.exceptions.ClassRoomNotFreeException;
 import com.school.sba.exceptions.DuplicateClassHoursException;
 import com.school.sba.exceptions.InvalidClassHourIdException;
@@ -60,9 +62,9 @@ public class ClassHourServiceImpl implements ClassHourService {
 
 	public ClassHour mapToClassHour(ClassHour classHour) {
 		return ClassHour.builder().academicProgram(classHour.getAcademicProgram())
-				.beginsAtLocalTime(classHour.getBeginsAtLocalTime().plusWeeks(1)).classStatus(classHour.getClassStatus())
-				.endsALocalTime(classHour.getEndsALocalTime().plusWeeks(1)).roomNo(classHour.getRoomNo())
-				.subject(classHour.getSubject()).user(classHour.getUser()).build();
+				.beginsAtLocalTime(classHour.getBeginsAtLocalTime().plusWeeks(1))
+				.classStatus(classHour.getClassStatus()).endsALocalTime(classHour.getEndsALocalTime().plusWeeks(1))
+				.roomNo(classHour.getRoomNo()).subject(classHour.getSubject()).user(classHour.getUser()).build();
 	}
 
 	public boolean isLunchTime(LocalDateTime currentTime, Schedule schedule) {
@@ -262,31 +264,56 @@ public class ClassHourServiceImpl implements ClassHourService {
 		return new ResponseEntity<ResponseStructure<List<ClassHourResponseDTO>>>(responseStructure, HttpStatus.OK);
 	}
 
+//	@Override
+//	public ResponseEntity<ResponseStructure<List<ClassHourResponseDTO>>> generateClassHourForNextWeek(int programId) {
+//		academicProgramRepo.findById(programId).map(program -> {
+//			LocalDateTime endsALocalTime = program.getClassHours().getLast().getEndsALocalTime();
+//
+//			LocalDateTime monday = endsALocalTime.minusDays(5).minusHours(8).minusMinutes(30);
+//			LocalDateTime saturday = endsALocalTime;
+//
+//			List<ClassHour> findByEndsALocalTimeBetween = classHourRepo.findByEndsALocalTimeBetween(monday, saturday);
+//
+//			ArrayList<ClassHourResponseDTO> alist = new ArrayList<>();
+//
+//			findByEndsALocalTimeBetween.forEach(find -> {
+//				alist.add(mapToClassHourResponse(classHourRepo.save(mapToClassHour(find))));
+//			});
+//			responseStructure.setData(alist);
+//			responseStructure.setMessage("next week data classhour !!!");
+//			responseStructure.setStatus(HttpStatus.CREATED.value());
+//			return new ResponseEntity<ResponseStructure<List<ClassHourResponseDTO>>>(responseStructure,
+//					HttpStatus.CREATED);
+//
+//		});
+//		return new ResponseEntity<ResponseStructure<List<ClassHourResponseDTO>>>(responseStructure, HttpStatus.CREATED);
+//
+//	}
+
 	@Override
-	public ResponseEntity<ResponseStructure<List<ClassHourResponseDTO>>> generateClassHourForNextWeek(int programId) {
+	public void generateClassHourForNextWeek(int programId) throws ClassHoursNotPresentException {
+		ArrayList<ClassHour> alist = new ArrayList<>();
 		academicProgramRepo.findById(programId).map(program -> {
-			LocalDateTime endsALocalTime = program.getClassHours().getLast().getEndsALocalTime();
+			if (!program.getClassHours().isEmpty()) {
+				LocalDateTime endsALocalTime = program.getClassHours().getLast().getEndsALocalTime();
 
-			LocalDateTime minusDays = endsALocalTime.minusDays(5).minusHours(8).minusMinutes(30);
-			LocalDateTime minusDays2 = endsALocalTime;
-			System.out.println(minusDays + " " + minusDays2);
+				LocalDateTime monday = endsALocalTime.minusDays(5).minusHours(8).minusMinutes(30);
+				LocalDateTime saturday = endsALocalTime;
 
-			List<ClassHour> findByEndsALocalTimeBetween = classHourRepo.findByEndsALocalTimeBetween(minusDays,
-					minusDays2);
+				List<ClassHour> findByEndsALocalTimeBetween = classHourRepo.findByEndsALocalTimeBetween(monday,
+						saturday);
 
-			ArrayList<ClassHourResponseDTO> alist = new ArrayList<>();
+				findByEndsALocalTimeBetween.forEach(classHour -> {
 
-			findByEndsALocalTimeBetween.forEach(find -> {
-				alist.add(mapToClassHourResponse(classHourRepo.save(mapToClassHour(find))));
-			});
-			responseStructure.setData(alist);
-			responseStructure.setMessage("next week data classhour !!!");
-			responseStructure.setStatus(HttpStatus.CREATED.value());
-			return new ResponseEntity<ResponseStructure<List<ClassHourResponseDTO>>>(responseStructure,
-					HttpStatus.CREATED);
+					alist.add(mapToClassHour(classHour));
+				});
+			} else {
+				throw new ClassHoursNotPresentException("class hours is Empty");
+			}
+			classHourRepo.saveAll(alist);
 
-		});
-		return new ResponseEntity<ResponseStructure<List<ClassHourResponseDTO>>>(responseStructure, HttpStatus.CREATED);
+			return program;
+		}).orElseThrow(() -> new AcademicProgramNotFoundByIdException("Invalid ID!!!!"));
 
 	}
 }
